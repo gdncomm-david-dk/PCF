@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="ULPApprovalManagement_Display_Key"><value>ULP Approval Management</value></data>
+  <data name="ULPApprovalManagement_Desc_Key"><value>ULP Hub approval workbench: inbox with status tabs and search, request detail with whole-request decisions for Campaign types and per-item (per-placement) decisions for every type, plus activity history and comments.</value></data>
+
+  <data name="Title_Display_Key"><value>Title</value></data>
+  <data name="Title_Desc_Key"><value>The Inbox's page title, e.g. "Approval Inbox".</value></data>
+  <data name="Subtitle_Display_Key"><value>Subtitle</value></data>
+  <data name="Subtitle_Desc_Key"><value>The Inbox's page subtitle/description.</value></data>
+
+  <data name="RequestIdField_Display_Key"><value>Request Id Field</value></data>
+  <data name="RequestIdField_Desc_Key"><value>Name of the bound column used as the unique request id.</value></data>
+  <data name="CampaignField_Display_Key"><value>Campaign Field</value></data>
+  <data name="CampaignField_Desc_Key"><value>Name of the bound column used as the campaign name.</value></data>
+  <data name="RequestTypeField_Display_Key"><value>Request Type Field</value></data>
+  <data name="RequestTypeField_Desc_Key"><value>Name of the bound column used as the request type (e.g. Homepage Banner).</value></data>
+  <data name="RequestedStartDateField_Display_Key"><value>Requested Start Date Field</value></data>
+  <data name="RequestedStartDateField_Desc_Key"><value>Name of the bound column used as the requested placement start date.</value></data>
+  <data name="RequestedEndDateField_Display_Key"><value>Requested End Date Field</value></data>
+  <data name="RequestedEndDateField_Desc_Key"><value>Name of the bound column used as the requested placement end date.</value></data>
+  <data name="SubmittedByField_Display_Key"><value>Submitted By Field</value></data>
+  <data name="SubmittedByField_Desc_Key"><value>Name of the bound column used as the requester's name.</value></data>
+  <data name="ApproverField_Display_Key"><value>Approver Field</value></data>
+  <data name="ApproverField_Desc_Key"><value>Name of the bound column used as the assigned approver's name (optional; the Approver filter is hidden if this isn't mapped).</value></data>
+  <data name="StatusField_Display_Key"><value>Status Field</value></data>
+  <data name="StatusField_Desc_Key"><value>Name of the bound column used as the request's current status.</value></data>
+
+  <data name="ItemIdField_Display_Key"><value>Item Id Field</value></data>
+  <data name="ItemIdField_Desc_Key"><value>Name of the bound column used as the unique item id on the items dataset.</value></data>
+  <data name="ItemRequestIdField_Display_Key"><value>Item Request Id Field</value></data>
+  <data name="ItemRequestIdField_Desc_Key"><value>Name of the bound column used as the parent request id on the items dataset (for the control's defensive scoping check only; the host is expected to pre-filter this dataset).</value></data>
+  <data name="ItemNameField_Display_Key"><value>Item Name Field</value></data>
+  <data name="ItemNameField_Desc_Key"><value>Name of the bound column used as the item's display name.</value></data>
+  <data name="ItemTypeField_Display_Key"><value>Item Type Field</value></data>
+  <data name="ItemTypeField_Desc_Key"><value>Name of the bound column used as the item's type.</value></data>
+  <data name="ItemStatusField_Display_Key"><value>Item Status Field</value></data>
+  <data name="ItemStatusField_Desc_Key"><value>Name of the bound column used as the item's current status.</value></data>
+
+  <data name="HistoryIdField_Display_Key"><value>History Id Field</value></data>
+  <data name="HistoryIdField_Desc_Key"><value>Name of the bound column used as the unique history entry id.</value></data>
+  <data name="HistoryRequestIdField_Display_Key"><value>History Request Id Field</value></data>
+  <data name="HistoryRequestIdField_Desc_Key"><value>Name of the bound column used as the parent request id on the history dataset.</value></data>
+  <data name="HistoryActionLabelField_Display_Key"><value>History Action Label Field</value></data>
+  <data name="HistoryActionLabelField_Desc_Key"><value>Name of the bound column used as the recorded action label (e.g. "Approved").</value></data>
+  <data name="HistoryActorField_Display_Key"><value>History Actor Field</value></data>
+  <data name="HistoryActorField_Desc_Key"><value>Name of the bound column used as the name of the approver who took the action.</value></data>
+  <data name="HistoryTimestampField_Display_Key"><value>History Timestamp Field</value></data>
+  <data name="HistoryTimestampField_Desc_Key"><value>Name of the bound column used as the date/time the action was taken.</value></data>
+  <data name="HistoryCommentField_Display_Key"><value>History Comment Field</value></data>
+  <data name="HistoryCommentField_Desc_Key"><value>Name of the bound column used as the optional comment recorded with the action.</value></data>
+
+  <data name="CommentIdField_Display_Key"><value>Comment Id Field</value></data>
+  <data name="CommentIdField_Desc_Key"><value>Name of the bound column used as the unique comment id.</value></data>
+  <data name="CommentRequestIdField_Display_Key"><value>Comment Request Id Field</value></data>
+  <data name="CommentRequestIdField_Desc_Key"><value>Name of the bound column used as the parent request id on the comments dataset.</value></data>
+  <data name="CommentAuthorField_Display_Key"><value>Comment Author Field</value></data>
+  <data name="CommentAuthorField_Desc_Key"><value>Name of the bound column used as the comment author's name.</value></data>
+  <data name="CommentTimestampField_Display_Key"><value>Comment Timestamp Field</value></data>
+  <data name="CommentTimestampField_Desc_Key"><value>Name of the bound column used as the date/time the comment was posted.</value></data>
+  <data name="CommentTextField_Display_Key"><value>Comment Text Field</value></data>
+  <data name="CommentTextField_Desc_Key"><value>Name of the bound column used as the comment's text body.</value></data>
+
+  <data name="ApprovalConfigJson_Display_Key"><value>Approval Config Json</value></data>
+  <data name="ApprovalConfigJson_Desc_Key"><value>JSON array of action configs ({key,label,resultStatus,requiresComment,requiresDateChange,requiresConfirmation,active,order}). Falls back to built-in defaults (Approve/Confirm/Reject/Approved with Changes/Request Revision) if empty or invalid. Shared by both the Inbox's bulk action and the Items tab's bulk action.</value></data>
+  <data name="ItemAvailabilityJson_Display_Key"><value>Item Availability Json</value></data>
+  <data name="ItemAvailabilityJson_Desc_Key"><value>JSON snapshot of the pending date-change item's availability window ({availableFrom, availableTo}, ISO YYYY-MM-DD dates). Bind via a Power Fx formula keyed on PendingDateChangeItemId.</value></data>
+
+  <data name="ShowSearch_Display_Key"><value>Show Search</value></data>
+  <data name="ShowSearch_Desc_Key"><value>Show the search box in the Inbox header.</value></data>
+  <data name="ShowFilter_Display_Key"><value>Show Filter</value></data>
+  <data name="ShowFilter_Desc_Key"><value>Show the Filter button and panel in the Inbox header.</value></data>
+  <data name="ShowSummaryCards_Display_Key"><value>Show Summary Cards</value></data>
+  <data name="ShowSummaryCards_Desc_Key"><value>Show the per-status summary count cards above the list.</value></data>
+
+  <data name="EmptyStateTitle_Display_Key"><value>Empty State Title</value></data>
+  <data name="EmptyStateTitle_Desc_Key"><value>Title shown when there are no requests at all.</value></data>
+  <data name="EmptyStateSubtitle_Display_Key"><value>Empty State Subtitle</value></data>
+  <data name="EmptyStateSubtitle_Desc_Key"><value>Subtitle shown when there are no requests at all.</value></data>
+
+  <data name="IsProcessing_Display_Key"><value>Is Processing</value></data>
+  <data name="IsProcessing_Desc_Key"><value>Set to true by the host app while it applies a confirmed bulk action (request-level or item-level) to the data source, false when done. Drives the control's submitting/disabled state for both the Inbox and the Items tab.</value></data>
+
+  <data name="Requests_Display_Key"><value>Requests</value></data>
+  <data name="Requests_Desc_Key"><value>The ULP requests awaiting approval.</value></data>
+  <data name="Column_RequestId_Display_Key"><value>Request Id</value></data>
+  <data name="Column_RequestId_Desc_Key"><value>Unique request identifier, e.g. ULP-1023.</value></data>
+  <data name="Column_Campaign_Display_Key"><value>Campaign</value></data>
+  <data name="Column_Campaign_Desc_Key"><value>The campaign name, e.g. Payday Campaign.</value></data>
+  <data name="Column_RequestType_Display_Key"><value>Request Type</value></data>
+  <data name="Column_RequestType_Desc_Key"><value>The placement/request type, e.g. Homepage Banner.</value></data>
+  <data name="Column_RequestedStartDate_Display_Key"><value>Requested Start Date</value></data>
+  <data name="Column_RequestedStartDate_Desc_Key"><value>Start of the requested placement period.</value></data>
+  <data name="Column_RequestedEndDate_Display_Key"><value>Requested End Date</value></data>
+  <data name="Column_RequestedEndDate_Desc_Key"><value>End of the requested placement period.</value></data>
+  <data name="Column_SubmittedBy_Display_Key"><value>Submitted By</value></data>
+  <data name="Column_SubmittedBy_Desc_Key"><value>Name of the requester.</value></data>
+  <data name="Column_Approver_Display_Key"><value>Approver</value></data>
+  <data name="Column_Approver_Desc_Key"><value>Name of the assigned approver.</value></data>
+  <data name="Column_Status_Display_Key"><value>Status</value></data>
+  <data name="Column_Status_Desc_Key"><value>The request's current status.</value></data>
+
+  <data name="Items_Display_Key"><value>Items</value></data>
+  <data name="Items_Desc_Key"><value>The line items on the currently open request. The host should pre-filter this to the request named by the OpenRequestId output, e.g. Filter(ItemsList, RequestId = ULPApprovalManagement1.OpenRequestId).</value></data>
+  <data name="Column_ItemId_Display_Key"><value>Item Id</value></data>
+  <data name="Column_ItemId_Desc_Key"><value>Unique item identifier.</value></data>
+  <data name="Column_ItemRequestId_Display_Key"><value>Item Request Id</value></data>
+  <data name="Column_ItemRequestId_Desc_Key"><value>The parent request id this item belongs to.</value></data>
+  <data name="Column_ItemName_Display_Key"><value>Item Name</value></data>
+  <data name="Column_ItemName_Desc_Key"><value>The item's display name, e.g. Homepage Hero Banner.</value></data>
+  <data name="Column_ItemType_Display_Key"><value>Item Type</value></data>
+  <data name="Column_ItemType_Desc_Key"><value>The item's type, e.g. Banner.</value></data>
+  <data name="Column_ItemStatus_Display_Key"><value>Item Status</value></data>
+  <data name="Column_ItemStatus_Desc_Key"><value>The item's current status.</value></data>
+
+  <data name="History_Display_Key"><value>History</value></data>
+  <data name="History_Desc_Key"><value>Read-only approval history entries for the currently open request. The host should pre-filter this by OpenRequestId, same as the items dataset.</value></data>
+  <data name="Column_HistoryId_Display_Key"><value>History Id</value></data>
+  <data name="Column_HistoryId_Desc_Key"><value>Unique history entry identifier.</value></data>
+  <data name="Column_HistoryRequestId_Display_Key"><value>History Request Id</value></data>
+  <data name="Column_HistoryRequestId_Desc_Key"><value>The parent request id this history entry belongs to.</value></data>
+  <data name="Column_ActionLabel_Display_Key"><value>Action Label</value></data>
+  <data name="Column_ActionLabel_Desc_Key"><value>The action label recorded at the time, e.g. "Approved".</value></data>
+  <data name="Column_Actor_Display_Key"><value>Actor</value></data>
+  <data name="Column_Actor_Desc_Key"><value>Name of the approver who took the action.</value></data>
+  <data name="Column_HistoryTimestamp_Display_Key"><value>History Timestamp</value></data>
+  <data name="Column_HistoryTimestamp_Desc_Key"><value>Date/time the action was taken.</value></data>
+  <data name="Column_HistoryComment_Display_Key"><value>History Comment</value></data>
+  <data name="Column_HistoryComment_Desc_Key"><value>Optional comment recorded with the action.</value></data>
+
+  <data name="Comments_Display_Key"><value>Comments</value></data>
+  <data name="Comments_Desc_Key"><value>Read-only comments for the currently open request. The host should pre-filter this by OpenRequestId, same as the items dataset. No add-comment composer exists in this control.</value></data>
+  <data name="Column_CommentId_Display_Key"><value>Comment Id</value></data>
+  <data name="Column_CommentId_Desc_Key"><value>Unique comment identifier.</value></data>
+  <data name="Column_CommentRequestId_Display_Key"><value>Comment Request Id</value></data>
+  <data name="Column_CommentRequestId_Desc_Key"><value>The parent request id this comment belongs to.</value></data>
+  <data name="Column_Author_Display_Key"><value>Author</value></data>
+  <data name="Column_Author_Desc_Key"><value>Name of the comment's author.</value></data>
+  <data name="Column_CommentTimestamp_Display_Key"><value>Comment Timestamp</value></data>
+  <data name="Column_CommentTimestamp_Desc_Key"><value>Date/time the comment was posted.</value></data>
+  <data name="Column_CommentText_Display_Key"><value>Comment Text</value></data>
+  <data name="Column_CommentText_Desc_Key"><value>The comment's text body.</value></data>
+
+  <data name="SelectedRequestIdsJson_Display_Key"><value>Selected Request Ids Json</value></data>
+  <data name="SelectedRequestIdsJson_Desc_Key"><value>JSON array of the currently selected request ids, updated live as the user (de)selects rows.</value></data>
+  <data name="ApprovalActionPayloadJson_Display_Key"><value>Approval Action Payload Json</value></data>
+  <data name="ApprovalActionPayloadJson_Desc_Key"><value>JSON payload ({action, requestId, comment?}) set when a bulk action is confirmed. Wire this to OnChange to Patch/UpdateIf the backing Microsoft List.</value></data>
+  <data name="ActionSequence_Display_Key"><value>Action Sequence</value></data>
+  <data name="ActionSequence_Desc_Key"><value>Increments every time a bulk action is confirmed, so OnChange fires even if the same action/payload repeats.</value></data>
+  <data name="OpenRequestId_Display_Key"><value>Open Request Id</value></data>
+  <data name="OpenRequestId_Desc_Key"><value>The requestId of the currently open Request Detail view, or empty when none is open. Bind the items/history/comments dataset properties with a Filter() keyed on this value.</value></data>
+  <data name="SelectedItemIdsJson_Display_Key"><value>Selected Item Ids Json</value></data>
+  <data name="SelectedItemIdsJson_Desc_Key"><value>JSON array of the currently selected item ids on the open request's Items tab, updated live as the user (de)selects rows.</value></data>
+  <data name="ItemActionPayloadJson_Display_Key"><value>Item Action Payload Json</value></data>
+  <data name="ItemActionPayloadJson_Desc_Key"><value>JSON payload ({action, itemId, comment?, revisedStartDate?, revisedEndDate?}) set when an item-level bulk action is confirmed. revisedStartDate/revisedEndDate (ISO dates) are present only for a requiresDateChange action. Wire this to OnChange to Patch/UpdateIf the backing Items list.</value></data>
+  <data name="ItemActionSequence_Display_Key"><value>Item Action Sequence</value></data>
+  <data name="ItemActionSequence_Desc_Key"><value>Increments every time an item-level bulk action is confirmed, so OnChange fires even if the same action/payload repeats.</value></data>
+  <data name="PendingDateChangeItemId_Display_Key"><value>Pending Date Change Item Id</value></data>
+  <data name="PendingDateChangeItemId_Desc_Key"><value>The itemId currently pending an Approve-with-Changes date revision, or empty when no such dialog is open. Bind ItemAvailabilityJson's Power Fx formula to this value.</value></data>
+
+  <data name="ItemStartDateField_Display_Key"><value>Item Start Date Field</value></data>
+  <data name="ItemStartDateField_Desc_Key"><value>Name of the bound column used as the item's start date (shown on the item row and used as the default in the date-change dialog).</value></data>
+  <data name="ItemEndDateField_Display_Key"><value>Item End Date Field</value></data>
+  <data name="ItemEndDateField_Desc_Key"><value>Name of the bound column used as the item's end date.</value></data>
+  <data name="ItemPlacementIdField_Display_Key"><value>Item Placement Id Field</value></data>
+  <data name="ItemPlacementIdField_Desc_Key"><value>Name of the bound column used as the item's placement id (shown on the item row).</value></data>
+  <data name="RequestLevelTypes_Display_Key"><value>Request-level Types</value></data>
+  <data name="RequestLevelTypes_Desc_Key"><value>Semicolon-separated request types that can be decided as a whole request (Approve request / Reject / Request revision). Other types are decided item by item only. Default: Campaign;Campaign (Gamification).</value></data>
+  <data name="Column_ItemStartDate_Display_Key"><value>Item Start Date</value></data>
+  <data name="Column_ItemStartDate_Desc_Key"><value>The item's (possibly revised) start date.</value></data>
+  <data name="Column_ItemEndDate_Display_Key"><value>Item End Date</value></data>
+  <data name="Column_ItemEndDate_Desc_Key"><value>The item's (possibly revised) end date.</value></data>
+  <data name="Column_ItemPlacementId_Display_Key"><value>Item Placement Id</value></data>
+  <data name="Column_ItemPlacementId_Desc_Key"><value>The placement the item books.</value></data>
+</root>
