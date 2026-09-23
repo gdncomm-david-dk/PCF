@@ -22,8 +22,8 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
 
-  <data name="ULPApprovalManagement_Display_Key"><value>ULP Approval Management</value></data>
-  <data name="ULPApprovalManagement_Desc_Key"><value>ULP Hub approval workbench: inbox with status tabs and search, request detail with whole-request decisions for Campaign types and per-item (per-placement) decisions for every type, plus activity history and comments.</value></data>
+  <data name="ApprovalUIManagement_Display_Key"><value>Approval UI Management</value></data>
+  <data name="ApprovalUIManagement_Desc_Key"><value>ULP Hub approval workbench: inbox with status tabs and search, request detail with whole-request decisions and per-item (per-placement) decisions, activity history and comments.</value></data>
 
   <data name="Title_Display_Key"><value>Title</value></data>
   <data name="Title_Desc_Key"><value>The Inbox's page title, e.g. "Approval Inbox".</value></data>
@@ -57,6 +57,10 @@
   <data name="ItemTypeField_Desc_Key"><value>Name of the bound column used as the item's type.</value></data>
   <data name="ItemStatusField_Display_Key"><value>Item Status Field</value></data>
   <data name="ItemStatusField_Desc_Key"><value>Name of the bound column used as the item's current status.</value></data>
+  <data name="ItemStartDateField_Display_Key"><value>Item Start Date Field</value></data>
+  <data name="ItemStartDateField_Desc_Key"><value>Name of the bound column holding this item&apos;s own start date. Used to prefill and bound the revised period in Approve with Changes.</value></data>
+  <data name="ItemEndDateField_Display_Key"><value>Item End Date Field</value></data>
+  <data name="ItemEndDateField_Desc_Key"><value>Name of the bound column holding this item&apos;s own end date. Used to prefill and bound the revised period in Approve with Changes.</value></data>
 
   <data name="HistoryIdField_Display_Key"><value>History Id Field</value></data>
   <data name="HistoryIdField_Desc_Key"><value>Name of the bound column used as the unique history entry id.</value></data>
@@ -85,13 +89,17 @@
   <data name="ApprovalConfigJson_Display_Key"><value>Approval Config Json</value></data>
   <data name="ApprovalConfigJson_Desc_Key"><value>JSON array of action configs ({key,label,resultStatus,requiresComment,requiresDateChange,requiresConfirmation,active,order}). Falls back to built-in defaults (Approve/Confirm/Reject/Approved with Changes/Request Revision) if empty or invalid. Shared by both the Inbox's bulk action and the Items tab's bulk action.</value></data>
   <data name="ItemAvailabilityJson_Display_Key"><value>Item Availability Json</value></data>
-  <data name="ItemAvailabilityJson_Desc_Key"><value>JSON snapshot of the pending date-change item's availability window ({availableFrom, availableTo}, ISO YYYY-MM-DD dates). Bind via a Power Fx formula keyed on PendingDateChangeItemId.</value></data>
+  <data name="ItemAvailabilityJson_Desc_Key"><value>JSON for the pending date-change item: optional {availableFrom, availableTo} window, optional blockedDates / fullDates (YYYY-MM-DD list), placementName, dailyCapacity and freeDates. Bind via a Power Fx formula keyed on PendingDateChangeItemId.</value></data>
 
   <data name="ShowSearch_Display_Key"><value>Show Search</value></data>
   <data name="ShowSearch_Desc_Key"><value>Show the search box in the Inbox header.</value></data>
   <data name="ShowFilter_Display_Key"><value>Show Filter</value></data>
   <data name="ShowFilter_Desc_Key"><value>Show the Filter button and panel in the Inbox header.</value></data>
   <data name="ShowSummaryCards_Display_Key"><value>Show Summary Cards</value></data>
+  <data name="AllowRequestActions_Display_Key"><value>Allow Request Actions</value></data>
+  <data name="AllowRequestActions_Desc_Key"><value>When false, the request-level bulk action bar is hidden. Use it for request types that are decided per item.</value></data>
+  <data name="AllowItemActions_Display_Key"><value>Allow Item Actions</value></data>
+  <data name="AllowItemActions_Desc_Key"><value>When false, the Items tab bulk action bar is hidden. Use it for request types where approving the request decides every item.</value></data>
   <data name="ShowSummaryCards_Desc_Key"><value>Show the per-status summary count cards above the list.</value></data>
 
   <data name="EmptyStateTitle_Display_Key"><value>Empty State Title</value></data>
@@ -122,7 +130,7 @@
   <data name="Column_Status_Desc_Key"><value>The request's current status.</value></data>
 
   <data name="Items_Display_Key"><value>Items</value></data>
-  <data name="Items_Desc_Key"><value>The line items on the currently open request. The host should pre-filter this to the request named by the OpenRequestId output, e.g. Filter(ItemsList, RequestId = ULPApprovalManagement1.OpenRequestId).</value></data>
+  <data name="Items_Desc_Key"><value>The line items on the currently open request. The host should pre-filter this to the request named by the OpenRequestId output, e.g. Filter(ItemsList, RequestId = ApprovalUIManagement1.OpenRequestId).</value></data>
   <data name="Column_ItemId_Display_Key"><value>Item Id</value></data>
   <data name="Column_ItemId_Desc_Key"><value>Unique item identifier.</value></data>
   <data name="Column_ItemRequestId_Display_Key"><value>Item Request Id</value></data>
@@ -179,18 +187,8 @@
   <data name="PendingDateChangeItemId_Display_Key"><value>Pending Date Change Item Id</value></data>
   <data name="PendingDateChangeItemId_Desc_Key"><value>The itemId currently pending an Approve-with-Changes date revision, or empty when no such dialog is open. Bind ItemAvailabilityJson's Power Fx formula to this value.</value></data>
 
-  <data name="ItemStartDateField_Display_Key"><value>Item Start Date Field</value></data>
-  <data name="ItemStartDateField_Desc_Key"><value>Name of the bound column used as the item's start date (shown on the item row and used as the default in the date-change dialog).</value></data>
-  <data name="ItemEndDateField_Display_Key"><value>Item End Date Field</value></data>
-  <data name="ItemEndDateField_Desc_Key"><value>Name of the bound column used as the item's end date.</value></data>
   <data name="ItemPlacementIdField_Display_Key"><value>Item Placement Id Field</value></data>
-  <data name="ItemPlacementIdField_Desc_Key"><value>Name of the bound column used as the item's placement id (shown on the item row).</value></data>
+  <data name="ItemPlacementIdField_Desc_Key"><value>Name of the bound column holding the item's placement id (shown on each item row).</value></data>
   <data name="RequestLevelTypes_Display_Key"><value>Request-level Types</value></data>
-  <data name="RequestLevelTypes_Desc_Key"><value>Semicolon-separated request types that can be decided as a whole request (Approve request / Reject / Request revision). Other types are decided item by item only. Default: Campaign;Campaign (Gamification).</value></data>
-  <data name="Column_ItemStartDate_Display_Key"><value>Item Start Date</value></data>
-  <data name="Column_ItemStartDate_Desc_Key"><value>The item's (possibly revised) start date.</value></data>
-  <data name="Column_ItemEndDate_Display_Key"><value>Item End Date</value></data>
-  <data name="Column_ItemEndDate_Desc_Key"><value>The item's (possibly revised) end date.</value></data>
-  <data name="Column_ItemPlacementId_Display_Key"><value>Item Placement Id</value></data>
-  <data name="Column_ItemPlacementId_Desc_Key"><value>The placement the item books.</value></data>
+  <data name="RequestLevelTypes_Desc_Key"><value>Optional semicolon-separated request types that get the Whole request decision bar, e.g. "Campaign;Campaign (Gamification)". Blank = every type (Allow Request Actions alone decides).</value></data>
 </root>

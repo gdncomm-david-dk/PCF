@@ -1,27 +1,38 @@
-# ULP Approval Management — PCF control v2
+# ULP Hub PCF controls
 
-Source for the `PowerAppsVibe.ULPApprovalManagement` code component used on **ApprovalScreen** in the
-ULP Hub canvas app. v2 redesigns the UI in the Blibli (Blu Basic) look of the ULP Hub dashboard mockups
+| Control | Solution | Docs |
+|---|---|---|
+| `PowerAppsVibe.ApprovalUIManagement` — approval inbox (request- and item-level) | `ApprovalUIManagement` 1.6 → 2.0 | this page |
+| `DK.Components.MarketingSlotCalendar` — placement × day slot calendar | `MarketingSlotCalendarSolution` 1.1 → 2.0 | [docs/MarketingSlotCalendar.md](docs/MarketingSlotCalendar.md) |
+
+Both are upgrades in place: same component names and contracts, so the existing screens keep working.
+
+---
+
+# ApprovalUIManagement — PCF control v2
+
+Source for the `PowerAppsVibe.ApprovalUIManagement` code component (solution `ApprovalUIManagement`,
+previously 1.6.0) used on **ApprovalScreen** in the ULP Hub canvas app as `ApprovalUIManagement1`. v2 redesigns the UI in the Blibli (Blu Basic) look of the ULP Hub dashboard mockups
 and makes **item-level (per-placement) approval** the centre of the detail pane. Campaign types keep a
 whole-request decision bar on top of it.
 
 **The output contract is unchanged.** The ApprovalScreen `OnChange` handler (blocks A, B and C) works
-as it is: same namespace, constructor, properties, payload shapes and sequence counters.
+as it is: same namespace, constructor, properties, datasets (no property-sets, columns come from the
+Fields pane), payload shapes and sequence counters. v2 only adds two optional input properties.
 
 ![Item-level decisions](docs/screenshots/01-item-level.png)
 
 ## What changed for the approver
 
-| Area | 1.x | 2.0 |
+| Area | 1.6 | 2.0 |
 |---|---|---|
-| Inbox | table plus a bulk request action bar | request cards (avatar, type chip, period, item progress), tabs **Needs action / Decided / All**, KPI strip, search, filter panel |
-| Request decision | bulk bar in the inbox (the handler processed only the first id) | **Whole request** bar in the detail pane, for `requestLevelTypes` only (default Campaign, Campaign (Gamification)), with the cascade spelled out in the confirm dialog |
+| Inbox | table / cards with summary counts | request cards (avatar, type chip, period, item progress), tabs **Needs action / Decided / All**, KPI strip, search, filter panel |
+| Request decision | dropdown action bar in the detail pane | **Whole request** bar with explicit buttons (Reject · Request revision · Approve request), still controlled by `allowRequestActions`. For Campaign types the confirm dialog spells out the cascade to items and bookings |
 | Item decision | Items tab: a table plus a dropdown bulk bar | every item row has its own **Approve / Reject / Approve with changes** buttons, plus multi-select with a floating bulk bar and filters **All / Pending / Decided**. A decided item collapses to *Change decision* |
-| Approve with changes | two date pickers | requested → revised comparison, availability window, optional *Nearest free* chips, dates pre-filled from the item |
+| Approve with changes | date pickers + availability line | requested → revised comparison, availability window, fully booked days, daily-capacity message, optional *Nearest free* chips, dates pre-filled from the item |
 | Progress | none | "x of n items decided" with a segmented bar (approved / with changes / rejected / pending) |
 | History / Comments | plain lists | Activity timeline coloured by action, and Comments as a chat thread |
-| Feedback | dialogs waited on `IsProcessing` | dialogs close on confirm. Affected rows show *Updating* until the lists report the new status (or 20 s pass), and a toast confirms the send |
-| Refresh | refreshed `requests` only | refreshes requests, items, history and comments |
+| Feedback | dialogs close on confirm | the same, plus: affected rows show *Updating* until the lists report the new status (or 20 s pass), and a toast confirms the send |
 | Layout | — | desktop split view; tablet and mobile show the detail full-width with sticky tabs and decision bar |
 
 | Bulk select | Approve with changes | Whole request (Campaign) | Mobile |
@@ -38,29 +49,36 @@ as it is: same namespace, constructor, properties, payload shapes and sequence c
 | `OpenRequestId` | a request is opened or closed | request id, or `""` |
 | `PendingDateChangeItemId` | the date dialog opens or closes | item id, or `""`. Keep `ItemAvailabilityJson` bound to it |
 | `SelectedItemIdsJson` | item checkboxes change | JSON array |
-| `SelectedRequestIdsJson` | a request is opened | `["<open id>"]` (the inbox no longer multi-selects requests) |
+| `SelectedRequestIdsJson` | a request is opened | `["<open id>"]` (the inbox does not multi-select requests) |
 
 Action keys are exactly the ones the handler switches on: `APPROVE`, `CONFIRM`, `REJECT`, `REVISION`
 (request) and `APPROVE`, `CONFIRM`, `REJECT`, `APPROVE_CHANGE` (item).
+
+## Properties kept from 1.6
+
+| Property | Behaviour in v2 |
+|---|---|
+| `allowRequestActions` | false hides the Whole request bar (bind it per request type, as in 1.6) |
+| `allowItemActions` | false makes the Items tab read-only: no row buttons, checkboxes or bulk bar |
+| `itemStartDateField`, `itemEndDateField` (default `StartDate`, `EndDate`) | shown on each item row and used to pre-fill the date dialog |
+| `ItemAvailabilityJson` | same input as 1.6: optional `availableFrom` / `availableTo` window (no window = any period), `blockedDates` or `fullDates`, `placementName`, `dailyCapacity`. Unreadable JSON blocks the dialog. v2 also reads an optional `freeDates` list, shown as *Nearest free* chips |
+
+Column reading follows 1.6: a field that is not in the dataset metadata is still read by name (several
+spellings, then the formatted value), and the resolved mapping is written once to `console.debug`.
 
 ## New optional properties
 
 | Property | Default | Purpose |
 |---|---|---|
-| `requestLevelTypes` | `Campaign;Campaign (Gamification)` | request types that get the Whole request bar. Keep it equal to the types block A cascades (`varCascade`); other types are decided per item only |
-| `itemStartDateField`, `itemEndDateField`, `itemPlacementIdField` | `startDate`, `endDate`, `placementId` | item columns shown on each row. Also available as dataset columns `itemStartDate`, `itemEndDate`, `itemPlacementId` |
+| `itemPlacementIdField` | `PlacementId` | placement shown on each item row |
+| `requestLevelTypes` | *(blank)* | optional extra filter for the Whole request bar, e.g. `Campaign;Campaign (Gamification)`. Blank = every type, so `allowRequestActions` alone decides, exactly as in 1.6 |
 
-To show dates and placement on item rows, add **StartDate, EndDate, PlacementId** from
-`'[ULP] Approval Item List'` to the control's *items* fields in Studio. Without them the rows still
-work; they just show less.
-
-`ItemAvailabilityJson` still takes `{"availableFrom":"yyyy-mm-dd","availableTo":"yyyy-mm-dd"}` and now
-also accepts an optional `"freeDates":["yyyy-mm-dd",…]`, shown as *Nearest free* chips. A single-day
-revision (end = start) is now allowed.
+A whole-request APPROVE / REJECT on Campaign and Campaign (Gamification) marks the items as *Updating*
+as well, because block A cascades those (`varCascade`). For other types only the header is expected to move.
 
 ## Action configuration (`ApprovalConfigJson`)
 
-The JSON shape is the same as 1.x. Each row may now carry an optional `"scope": "request" | "item" | "both"`.
+The JSON shape is the same as 1.6. Each row may now carry an optional `"scope": "request" | "item" | "both"`.
 When it is left out, the scope is inferred so that no button sends a key the handler ignores at that level:
 
 - `REVISION` is request-only (block B has no branch for it).
@@ -75,29 +93,38 @@ to the config to bring it back.
 
 ```bash
 npm install
-npm run build          # pcf-scripts: lint + typecheck + bundle -> out/controls/ULPApprovalManagement
+npm run build          # pcf-scripts: lint + typecheck + bundle -> out/controls/{ApprovalUIManagement,MarketingSlotCalendar}
 npm run harness        # http://localhost:8181 - mock datasets + a JS copy of the Power Fx cascade/roll-up
-npm run package -- --base path/to/ULPApprovalManagementSolution_1_3_3_0_managed.zip --version 2.0.0.0
+                       # http://localhost:8181/harness/calendar.html - slot calendar harness
+npm run package -- --base path/to/ApprovalUIManagement_1_6_0_0_managed.zip --version 2.0.0.0
+npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --version 2.0.0.0
 ```
 
-`npm run package` takes an existing solution export and replaces only the ULPApprovalManagement
-control. It keeps ModernActionList, ModernAnalyticsChart and the managed flag, bumps the version, and
-writes `dist/ULPApprovalManagementSolution_2_0_0_0_managed.zip`. Import that zip over the current
+`npm run package` takes an existing solution export and replaces only the code component(s) it
+contains with the fresh build (names read from the built manifests and the solution's publisher prefix). It keeps everything else
+in the zip and the managed flag, bumps the version, and writes `dist/ApprovalUIManagement_2_0_0_0_managed.zip`. Import that zip over the current
 solution (**Solutions → Import → Upgrade**). Then, in the canvas app: **Get more components → Code →
 refresh the component**, and republish.
 
 The harness page logs every output exactly as the canvas app would see it, so a payload change can be
-checked without going through Studio.
+checked without going through Studio. Query flags: `?allowRequest=0`, `?allowItem=0`,
+`?types=Campaign;Campaign%20(Gamification)`.
 
 ## Project layout
 
 ```
-ULPApprovalManagement/
-  ControlManifest.Input.xml   properties and datasets (1.x set + v2 optional ones)
+ApprovalUIManagement/
+  ControlManifest.Input.xml   properties and datasets (1.6 set + two optional v2 ones)
   index.ts                    PCF lifecycle, outputs, sequence counters
   lib/                        types, action config, dataset mapping, formatting
   components/                 App, Inbox, Detail, ItemsPanel, Dialogs, Primitives, Icons
   styles/                     Blibli tokens, all scoped under .uam-root
-harness/                      local test page (not shipped)
+MarketingSlotCalendar/
+  ControlManifest.Input.xml   1.1 contract + three optional v2 properties (virtual control, platform React)
+  index.ts                    PCF lifecycle, outputs, payload
+  lib/                        types, dates, capacity rules, dataset / JSON reading, sample data
+  components/                 App, CapacityGrid, WeekBoard, Timeline, ListView, DayPanel, BookingDialog, Agenda, ui
+  css/                        Blibli tokens, all scoped under .msc-root
+harness/                      local test pages (not shipped)
 solution/package-solution.js  builds the importable solution zip
 ```

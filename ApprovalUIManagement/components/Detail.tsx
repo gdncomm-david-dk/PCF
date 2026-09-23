@@ -15,6 +15,7 @@ export interface DetailProps {
     history: DatasetState<HistoryEntry>;
     comments: DatasetState<CommentEntry>;
     requestLevel: boolean;
+    cascades: boolean;
     requestActions: ApprovalAction[];
     itemActions: ApprovalAction[];
     requestBusy: boolean;
@@ -127,9 +128,11 @@ export const Detail: React.FC<DetailProps> = (p) => {
 
                 <p className="uam-hint">
                     <InfoIcon size={14} />
-                    {p.requestLevel
+                    {p.requestLevel && p.cascades
                         ? "Decide the whole request below, or decide items one by one. Either way the ticket lands on the same status."
-                        : "Decided item by item. Once every item is decided the ticket rolls up to Approved, Partial Approve or Rejected."}
+                        : p.requestLevel
+                          ? "A whole-request decision sets the request status only. Items are decided one by one and roll up once all are decided."
+                          : "Decided item by item. Once every item is decided the ticket rolls up to Approved, Partial Approve or Rejected."}
                 </p>
             </div>
 
@@ -176,9 +179,9 @@ export const Detail: React.FC<DetailProps> = (p) => {
                         <span className="uam-muted">
                             {isDecidedRequestStatus(r.status)
                                 ? `Currently ${r.status}. Deciding again marks the ticket as revised.`
-                                : stats.total > 0
+                                : p.cascades && stats.total > 0
                                   ? `Applies to all ${plural(stats.total, "item")} and their bookings.`
-                                  : "Applies to the request and its bookings."}
+                                  : "Sets the request status."}
                         </span>
                     </div>
                     <div className="uam-decide__actions">

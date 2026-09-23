@@ -12,27 +12,64 @@ type EntityRecord = ComponentFramework.PropertyHelper.DataSetApi.EntityRecord;
 
 const squash = (s: string | undefined | null): string => (s ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
+const findColumn = (columns: Column[], key: string): Column | undefined => {
+    const k = squash(key);
+    return k.length === 0 ? undefined : columns.find((c) => squash(c.name) === k || squash(c.displayName) === k || squash(c.alias) === k);
+};
+
 /**
- * Resolves a logical column name. The configured field name is tried first, then the
- * fallbacks; each is compared to the column's name, display name and alias with case,
- * spaces and punctuation ignored. Same rule the 1.x control used, so existing
- * field-mapping properties keep working.
+ * Resolves a logical column. The configured field name is tried first, then the fallbacks;
+ * each is compared to the column's name, display name and alias with case, spaces and
+ * punctuation ignored. As in 1.6, when nothing matches the metadata the first non-empty
+ * candidate is still returned and read by name: canvas datasets do not always list every
+ * column in `columns`.
  */
 function resolve(columns: Column[], configured: string | undefined, fallbacks: string[]): string | undefined {
-    const candidates = [configured ?? "", ...fallbacks].map(squash).filter((c) => c.length > 0);
+    const candidates = [configured ?? "", ...fallbacks].map((c) => c.trim()).filter((c) => c.length > 0);
     for (const c of candidates) {
-        const hit = columns.find((col) => squash(col.name) === c || squash(col.displayName) === c || squash(col.alias) === c);
+        const hit = findColumn(columns, c);
         if (hit) return hit.name;
+    }
+    return candidates[0];
+}
+
+/** Every spelling a value may be stored under: the name, the matching column's alias / name / display name, and lower/upper first letter. */
+function keysFor(name: string, columns: Column[]): string[] {
+    const keys: string[] = [name];
+    const col = findColumn(columns, name);
+    if (col) [col.alias, col.name, col.displayName].forEach((k) => k && keys.indexOf(k) === -1 && keys.push(k));
+    [name.charAt(0).toLowerCase() + name.slice(1), name.charAt(0).toUpperCase() + name.slice(1)].forEach((k) => keys.indexOf(k) === -1 && keys.push(k));
+    return keys;
+}
+
+function readValue(rec: EntityRecord, name: string, columns: Column[]): unknown {
+    const keys = keysFor(name, columns);
+    for (const k of keys) {
+        try {
+            const v = rec.getValue(k);
+            if (v !== null && v !== undefined && v !== "") return v;
+        } catch {
+            /* try the next spelling */
+        }
+    }
+    for (const k of keys) {
+        try {
+            const v = rec.getFormattedValue(k);
+            if (v !== null && v !== undefined && v !== "") return v;
+        } catch {
+            /* try the next spelling */
+        }
     }
     return undefined;
 }
 
 function text(v: unknown): string | undefined {
     if (v === null || v === undefined) return undefined;
+    if (v instanceof Date) return Number.isNaN(v.getTime()) ? undefined : v.toISOString();
     if (typeof v === "object") {
-        // Choice / lookup shapes: { Value }, { name }, { Email } ...
+        // Choice / person / lookup shapes: { Value }, { name }, { DisplayName }, { Email } ...
         const o = v as Record<string, unknown>;
-        const inner = o.Value ?? o.value ?? o.name ?? o.DisplayName ?? o.Email;
+        const inner = o.Value ?? o.value ?? o.DisplayName ?? o.name ?? o.Email;
         if (inner !== undefined) return text(inner);
     }
     const s = String(v).trim();
@@ -42,6 +79,11 @@ function text(v: unknown): string | undefined {
 function date(v: unknown): Date | undefined {
     if (v === null || v === undefined || v === "") return undefined;
     if (v instanceof Date) return Number.isNaN(v.getTime()) ? undefined : v;
+    if (typeof v === "string") {
+        // a bare yyyy-mm-dd is a calendar day, not UTC midnight
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v.trim());
+        if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+    }
     if (typeof v === "string" || typeof v === "number") {
         const d = new Date(v);
         return Number.isNaN(d.getTime()) ? undefined : d;
@@ -56,6 +98,23 @@ interface Spec<T> {
     label: string;
 }
 
+const logged: Record<string, string> = {};
+/** One console.debug per dataset shape, like 1.6: what is bound, and what was resolved to what. */
+function logMapping(label: string, columns: Column[], map: Record<string, string | undefined>): void {
+    try {
+        const sig = JSON.stringify([columns.map((c) => [c.name, c.alias, c.displayName]), map]);
+        if (logged[label] === sig) return;
+        logged[label] = sig;
+        const unbound = Object.keys(map).filter((k) => map[k] && !findColumn(columns, map[k] as string));
+        console.debug(`[ApprovalUIManagement] ${label} columns`, columns.map((c) => ({ name: c.name, alias: c.alias, displayName: c.displayName })));
+        console.debug(`[ApprovalUIManagement] ${label} resolved columns`, map);
+        if (unbound.length > 0)
+            console.debug(`[ApprovalUIManagement] ${label} NOT in column metadata - reading by name; add them in the Fields pane for reliable values`, unbound.map((k) => `${k} -> ${map[k]}`));
+    } catch {
+        /* logging must never break rendering */
+    }
+}
+
 function readDataset<T>(ds: DataSet | undefined, spec: Spec<T>, required: boolean): DatasetState<T> {
     if (!ds) {
         return { rows: [], loading: false, error: required ? `No data source is bound to the ${spec.label} dataset.` : null, hasMore: false };
@@ -63,37 +122,21 @@ function readDataset<T>(ds: DataSet | undefined, spec: Spec<T>, required: boolea
     try {
         const loading = !!ds.loading;
         const hasMore = !!ds.paging?.hasNextPage;
+        if (ds.error) return { rows: [], loading, error: ds.errorMessage || `Unable to load ${spec.label}s.`, hasMore };
         const columns = ds.columns ?? [];
-        if (columns.length === 0) return { rows: [], loading, error: null, hasMore };
-
         const map: Record<string, string | undefined> = {};
         for (const key of Object.keys(spec.fields)) {
             const [configured, ...fallbacks] = spec.fields[key];
             map[key] = resolve(columns, configured, fallbacks);
         }
-        if (Object.values(map).every((v) => !v)) {
-            return {
-                rows: [],
-                loading,
-                error: `None of the ${spec.label} columns could be matched to the bound data source. Check the field mappings or the bound column names.`,
-                hasMore
-            };
-        }
-        if (ds.error) return { rows: [], loading, error: ds.errorMessage || `Unable to load ${spec.label}.`, hasMore };
+        const ids = ds.sortedRecordIds ?? [];
+        if (ids.length > 0) logMapping(spec.label.toUpperCase(), columns, map);
 
         const rows: T[] = [];
-        for (const id of ds.sortedRecordIds ?? []) {
+        for (const id of ids) {
             const rec: EntityRecord = ds.records[id];
             if (!rec) continue;
-            const get = (key: string): unknown => {
-                const col = map[key];
-                if (!col) return undefined;
-                try {
-                    return rec.getValue(col);
-                } catch {
-                    return undefined;
-                }
-            };
+            const get = (key: string): unknown => (map[key] ? readValue(rec, map[key] as string, columns) : undefined);
             const row = spec.build(get, id);
             if (row) rows.push(row);
         }
@@ -115,7 +158,7 @@ export function readRequests(ds: DataSet | undefined, params: Params): DatasetSt
         {
             label: "request",
             fields: {
-                requestId: [p(params, "requestIdField"), "requestId", "id"],
+                requestId: [p(params, "requestIdField"), "requestId"],
                 campaign: [p(params, "campaignField"), "campaign", "campaignName"],
                 requestType: [p(params, "requestTypeField"), "requestType", "type"],
                 start: [p(params, "requestedStartDateField"), "requestedStartDate", "startDate"],
@@ -145,14 +188,14 @@ export function readItems(ds: DataSet | undefined, params: Params): DatasetState
         {
             label: "item",
             fields: {
-                itemId: [p(params, "itemIdField"), "itemId", "id"],
+                itemId: [p(params, "itemIdField"), "itemId"],
                 requestId: [p(params, "itemRequestIdField"), "itemRequestId", "requestId"],
                 itemName: [p(params, "itemNameField"), "itemName", "name", "title"],
                 itemType: [p(params, "itemTypeField"), "itemType", "type"],
                 status: [p(params, "itemStatusField"), "itemStatus", "status"],
-                start: [p(params, "itemStartDateField"), "itemStartDate", "startDate"],
-                end: [p(params, "itemEndDateField"), "itemEndDate", "endDate"],
-                placementId: [p(params, "itemPlacementIdField"), "itemPlacementId", "placementId"]
+                start: [p(params, "itemStartDateField"), "startDate", "itemStartDate", "availableFrom"],
+                end: [p(params, "itemEndDateField"), "endDate", "itemEndDate", "availableTo"],
+                placementId: [p(params, "itemPlacementIdField"), "placementId", "itemPlacementId"]
             },
             build: (get, id) => ({
                 itemId: text(get("itemId")) ?? id,
@@ -175,7 +218,7 @@ export function readHistory(ds: DataSet | undefined, params: Params): DatasetSta
         {
             label: "history",
             fields: {
-                historyId: [p(params, "historyIdField"), "historyId", "id"],
+                historyId: [p(params, "historyIdField"), "historyId"],
                 requestId: [p(params, "historyRequestIdField"), "historyRequestId", "requestId"],
                 actionLabel: [p(params, "historyActionLabelField"), "actionLabel", "action"],
                 actor: [p(params, "historyActorField"), "actor", "actionBy"],
@@ -201,7 +244,7 @@ export function readComments(ds: DataSet | undefined, params: Params): DatasetSt
         {
             label: "comment",
             fields: {
-                commentId: [p(params, "commentIdField"), "commentId", "id"],
+                commentId: [p(params, "commentIdField"), "commentId"],
                 requestId: [p(params, "commentRequestIdField"), "commentRequestId", "requestId"],
                 author: [p(params, "commentAuthorField"), "author", "createdBy"],
                 timestamp: [p(params, "commentTimestampField"), "commentTimestamp", "timestamp"],

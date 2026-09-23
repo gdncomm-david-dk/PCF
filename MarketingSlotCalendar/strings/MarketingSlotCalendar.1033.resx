@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Control -->
+  <data name="Control_Display" xml:space="preserve">
+    <value>Marketing Slot Calendar</value>
+  </data>
+  <data name="Control_Desc" xml:space="preserve">
+    <value>Resource calendar for managing marketing banner placements and daily booking capacity.</value>
+  </data>
+
+  <!-- Datasets -->
+  <data name="Placements_Display" xml:space="preserve">
+    <value>Placements</value>
+  </data>
+  <data name="Placements_Desc" xml:space="preserve">
+    <value>The banner placements shown as rows. Each placement carries a daily capacity.</value>
+  </data>
+  <data name="Bookings_Display" xml:space="preserve">
+    <value>Bookings</value>
+  </data>
+  <data name="Bookings_Desc" xml:space="preserve">
+    <value>The campaign bookings that consume placement capacity.</value>
+  </data>
+
+  <!-- Placement columns -->
+  <data name="PlacementName_Display" xml:space="preserve">
+    <value>Placement name</value>
+  </data>
+  <data name="PlacementName_Desc" xml:space="preserve">
+    <value>Column holding the display name of the placement.</value>
+  </data>
+  <data name="DailyCapacity_Display" xml:space="preserve">
+    <value>Daily capacity</value>
+  </data>
+  <data name="DailyCapacity_Desc" xml:space="preserve">
+    <value>Column holding the maximum number of bookings allowed per day.</value>
+  </data>
+  <data name="PlacementStatus_Display" xml:space="preserve">
+    <value>Placement status</value>
+  </data>
+  <data name="PlacementStatus_Desc" xml:space="preserve">
+    <value>Optional column holding the placement status, for example Active or Inactive.</value>
+  </data>
+
+  <!-- Booking columns -->
+  <data name="CampaignName_Display" xml:space="preserve">
+    <value>Campaign name</value>
+  </data>
+  <data name="CampaignName_Desc" xml:space="preserve">
+    <value>Column holding the campaign name of the booking.</value>
+  </data>
+  <data name="BookingPlacementId_Display" xml:space="preserve">
+    <value>Booking placement id</value>
+  </data>
+  <data name="BookingPlacementId_Desc" xml:space="preserve">
+    <value>Column holding the id of the placement this booking belongs to. Must match a placement record id.</value>
+  </data>
+  <data name="BookingStartDate_Display" xml:space="preserve">
+    <value>Start date</value>
+  </data>
+  <data name="BookingStartDate_Desc" xml:space="preserve">
+    <value>Column holding the first day the booking occupies the placement.</value>
+  </data>
+  <data name="BookingEndDate_Display" xml:space="preserve">
+    <value>End date</value>
+  </data>
+  <data name="BookingEndDate_Desc" xml:space="preserve">
+    <value>Column holding the last day the booking occupies the placement, inclusive.</value>
+  </data>
+  <data name="BookingStartTime_Display" xml:space="preserve">
+    <value>Start time</value>
+  </data>
+  <data name="BookingStartTime_Desc" xml:space="preserve">
+    <value>Optional column holding the start time as text, for example 09:00.</value>
+  </data>
+  <data name="BookingEndTime_Display" xml:space="preserve">
+    <value>End time</value>
+  </data>
+  <data name="BookingEndTime_Desc" xml:space="preserve">
+    <value>Optional column holding the end time as text, for example 12:00.</value>
+  </data>
+  <data name="Requester_Display" xml:space="preserve">
+    <value>Requester</value>
+  </data>
+  <data name="Requester_Desc" xml:space="preserve">
+    <value>Optional column holding the person who requested the booking.</value>
+  </data>
+  <data name="BookingStatus_Display" xml:space="preserve">
+    <value>Booking status</value>
+  </data>
+  <data name="BookingStatus_Desc" xml:space="preserve">
+    <value>Optional column holding the booking status, for example Confirmed or Pending.</value>
+  </data>
+  <data name="Notes_Display" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="Notes_Desc" xml:space="preserve">
+    <value>Optional column holding free text notes for the booking.</value>
+  </data>
+
+  <!-- JSON inputs -->
+  <data name="PlacementsJson_Display" xml:space="preserve">
+    <value>Placements JSON</value>
+  </data>
+  <data name="PlacementsJson_Desc" xml:space="preserve">
+    <value>Placements as a JSON array. Used when the Placements dataset is not bound. Example: [{"id":"p1","name":"Home Banner 1","dailyCapacity":3}]</value>
+  </data>
+  <data name="BookingsJson_Display" xml:space="preserve">
+    <value>Bookings JSON</value>
+  </data>
+  <data name="BookingsJson_Desc" xml:space="preserve">
+    <value>Bookings as a JSON array. Used when the Bookings dataset is not bound. Example: [{"id":"b1","campaignName":"Merdeka Sale","placementId":"p1","startDate":"2026-08-15","endDate":"2026-08-17"}]</value>
+  </data>
+  <data name="DataMode_Display" xml:space="preserve">
+    <value>Data mode</value>
+  </data>
+  <data name="DataMode_Desc" xml:space="preserve">
+    <value>Which data source to read from. Auto prefers datasets, then JSON, then built-in sample data.</value>
+  </data>
+  <data name="DataMode_Auto" xml:space="preserve">
+    <value>Auto</value>
+  </data>
+  <data name="DataMode_Auto_Desc" xml:space="preserve">
+    <value>Prefer datasets, fall back to JSON, then sample data.</value>
+  </data>
+  <data name="DataMode_Dataset" xml:space="preserve">
+    <value>Dataset</value>
+  </data>
+  <data name="DataMode_Dataset_Desc" xml:space="preserve">
+    <value>Read only from the bound datasets.</value>
+  </data>
+  <data name="DataMode_Json" xml:space="preserve">
+    <value>JSON</value>
+  </data>
+  <data name="DataMode_Json_Desc" xml:space="preserve">
+    <value>Read only from the JSON properties.</value>
+  </data>
+  <data name="DataMode_Mock" xml:space="preserve">
+    <value>Sample data</value>
+  </data>
+  <data name="DataMode_Mock_Desc" xml:space="preserve">
+    <value>Always show built-in sample data. Useful while designing the screen.</value>
+  </data>
+
+  <!-- Behaviour -->
+  <data name="FocusDate_Display" xml:space="preserve">
+    <value>Focus date</value>
+  </data>
+  <data name="FocusDate_Desc" xml:space="preserve">
+    <value>The date the calendar opens on. Defaults to today.</value>
+  </data>
+  <data name="DefaultView_Display" xml:space="preserve">
+    <value>Default view</value>
+  </data>
+  <data name="DefaultView_Desc" xml:space="preserve">
+    <value>The view shown when the control loads.</value>
+  </data>
+  <data name="View_Month" xml:space="preserve">
+    <value>Month</value>
+  </data>
+  <data name="View_Month_Desc" xml:space="preserve">
+    <value>Placement by day capacity matrix.</value>
+  </data>
+  <data name="View_Week" xml:space="preserve">
+    <value>Week</value>
+  </data>
+  <data name="View_Week_Desc" xml:space="preserve">
+    <value>One week with the bookings listed in every cell.</value>
+  </data>
+  <data name="View_Timeline" xml:space="preserve">
+    <value>Timeline</value>
+  </data>
+  <data name="View_Timeline_Desc" xml:space="preserve">
+    <value>Bookings drawn as bars across dates, one lane per overlap.</value>
+  </data>
+  <data name="View_List" xml:space="preserve">
+    <value>List</value>
+  </data>
+  <data name="View_List_Desc" xml:space="preserve">
+    <value>Structured list of bookings.</value>
+  </data>
+  <data name="IncludeStatuses_Display" xml:space="preserve">
+    <value>Include statuses</value>
+  </data>
+  <data name="IncludeStatuses_Desc" xml:space="preserve">
+    <value>Comma-separated booking statuses allowed into the calendar, for example "Confirmed" or "Confirmed,Pending". Leave empty to include every status. Excluded bookings are hidden and do not consume capacity. Matching ignores case; bookings with a blank status are excluded while this is set.</value>
+  </data>
+  <data name="WeekStartsOn_Display" xml:space="preserve">
+    <value>Week starts on</value>
+  </data>
+  <data name="WeekStartsOn_Desc" xml:space="preserve">
+    <value>First day of the week used by the Week view.</value>
+  </data>
+  <data name="Week_Sunday" xml:space="preserve">
+    <value>Sunday</value>
+  </data>
+  <data name="Week_Sunday_Desc" xml:space="preserve">
+    <value>Weeks run Sunday to Saturday.</value>
+  </data>
+  <data name="Week_Monday" xml:space="preserve">
+    <value>Monday</value>
+  </data>
+  <data name="Week_Monday_Desc" xml:space="preserve">
+    <value>Weeks run Monday to Sunday.</value>
+  </data>
+  <data name="AllowCreate_Display" xml:space="preserve">
+    <value>Allow create</value>
+  </data>
+  <data name="AllowCreate_Desc" xml:space="preserve">
+    <value>Show the Add booking action when capacity is available.</value>
+  </data>
+  <data name="AllowEdit_Display" xml:space="preserve">
+    <value>Allow edit</value>
+  </data>
+  <data name="AllowEdit_Desc" xml:space="preserve">
+    <value>Allow existing bookings to be edited.</value>
+  </data>
+  <data name="AllowDelete_Display" xml:space="preserve">
+    <value>Allow delete</value>
+  </data>
+  <data name="AllowDelete_Desc" xml:space="preserve">
+    <value>Allow existing bookings to be deleted.</value>
+  </data>
+  <data name="AllowDragDrop_Display" xml:space="preserve">
+    <value>Allow drag and drop</value>
+  </data>
+  <data name="AllowDragDrop_Desc" xml:space="preserve">
+    <value>Allow bookings to be moved between placements and dates by dragging.</value>
+  </data>
+
+  <!-- Presentation -->
+  <data name="HeaderTitle_Display" xml:space="preserve">
+    <value>Header title</value>
+  </data>
+  <data name="HeaderTitle_Desc" xml:space="preserve">
+    <value>Main heading shown at the top of the control.</value>
+  </data>
+  <data name="HeaderSubtitle_Display" xml:space="preserve">
+    <value>Header subtitle</value>
+  </data>
+  <data name="HeaderSubtitle_Desc" xml:space="preserve">
+    <value>Supporting line shown under the main heading.</value>
+  </data>
+  <data name="KpiDensity_Display" xml:space="preserve">
+    <value>Summary card density</value>
+  </data>
+  <data name="KpiDensity_Desc" xml:space="preserve">
+    <value>Size of the four capacity summary cards above the calendar.</value>
+  </data>
+  <data name="Kpi_Compact" xml:space="preserve">
+    <value>Compact</value>
+  </data>
+  <data name="Kpi_Compact_Desc" xml:space="preserve">
+    <value>Smaller cards that leave more room for the calendar.</value>
+  </data>
+  <data name="Kpi_Comfortable" xml:space="preserve">
+    <value>Comfortable</value>
+  </data>
+  <data name="Kpi_Comfortable_Desc" xml:space="preserve">
+    <value>Larger cards with a headline-sized figure.</value>
+  </data>
+  <data name="Kpi_Hidden" xml:space="preserve">
+    <value>Hidden</value>
+  </data>
+  <data name="Kpi_Hidden_Desc" xml:space="preserve">
+    <value>Do not show the summary cards at all.</value>
+  </data>
+  <data name="IsLoading_Display" xml:space="preserve">
+    <value>Is loading</value>
+  </data>
+  <data name="IsLoading_Desc" xml:space="preserve">
+    <value>Set to true while the app is fetching data to show the loading state.</value>
+  </data>
+  <data name="ErrorMessage_Display" xml:space="preserve">
+    <value>Error message</value>
+  </data>
+  <data name="ErrorMessage_Desc" xml:space="preserve">
+    <value>When set, the control shows this message in an error state instead of the calendar.</value>
+  </data>
+
+  <!-- Outputs -->
+  <data name="SelectedBookingId_Display" xml:space="preserve">
+    <value>Selected booking id</value>
+  </data>
+  <data name="SelectedBookingId_Desc" xml:space="preserve">
+    <value>Id of the booking involved in the last action.</value>
+  </data>
+  <data name="SelectedPlacementId_Display" xml:space="preserve">
+    <value>Selected placement id</value>
+  </data>
+  <data name="SelectedPlacementId_Desc" xml:space="preserve">
+    <value>Id of the placement involved in the last action.</value>
+  </data>
+  <data name="SelectedDate_Display" xml:space="preserve">
+    <value>Selected date</value>
+  </data>
+  <data name="SelectedDate_Desc" xml:space="preserve">
+    <value>Date involved in the last action, formatted as yyyy-MM-dd.</value>
+  </data>
+  <data name="LastAction_Display" xml:space="preserve">
+    <value>Last action</value>
+  </data>
+  <data name="LastAction_Desc" xml:space="preserve">
+    <value>One of BookingSelected, BookingCreated, BookingUpdated, BookingDeleted or DateSelected.</value>
+  </data>
+  <data name="LastActionPayload_Display" xml:space="preserve">
+    <value>Last action payload</value>
+  </data>
+  <data name="LastActionPayload_Desc" xml:space="preserve">
+    <value>JSON describing the last action, including the full booking record where relevant.</value>
+  </data>
+  <data name="EventCount_Display" xml:space="preserve">
+    <value>Event count</value>
+  </data>
+  <data name="EventCount_Desc" xml:space="preserve">
+    <value>Increments on every action so OnChange fires even when the same action repeats.</value>
+  </data>
+  <data name="CapacityStatuses_Display" xml:space="preserve">
+    <value>Capacity statuses</value>
+  </data>
+  <data name="CapacityStatuses_Desc" xml:space="preserve">
+    <value>Comma-separated booking statuses that use up daily capacity, for example "Confirmed". Other bookings are still shown, marked as pending, but leave the slot free. Leave empty to count every booking except Cancelled and Rejected.</value>
+  </data>
+  <data name="CurrentUserEmail_Display" xml:space="preserve">
+    <value>Current user email</value>
+  </data>
+  <data name="CurrentUserEmail_Desc" xml:space="preserve">
+    <value>Email of the signed-in user, usually User().Email. Used with Mask other bookings.</value>
+  </data>
+  <data name="MaskOtherBookings_Display" xml:space="preserve">
+    <value>Mask other bookings</value>
+  </data>
+  <data name="MaskOtherBookings_Desc" xml:space="preserve">
+    <value>When on, bookings whose requester is not the current user show as "Booked", with the campaign, requester and notes hidden, and cannot be edited, moved or deleted.</value>
+  </data>
+</root>

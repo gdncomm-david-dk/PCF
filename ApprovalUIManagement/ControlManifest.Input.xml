@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="PowerAppsVibe" constructor="ULPApprovalManagement" version="2.0.0" display-name-key="ULPApprovalManagement_Display_Key" description-key="ULPApprovalManagement_Desc_Key" control-type="standard" api-version="1.3.18">
+  <control namespace="PowerAppsVibe" constructor="ApprovalUIManagement" version="2.0.0" display-name-key="ApprovalUIManagement_Display_Key" description-key="ApprovalUIManagement_Desc_Key" control-type="standard" api-version="1.3.18">
     <property name="title" display-name-key="Title_Display_Key" description-key="Title_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="Approval Inbox"/>
     <property name="subtitle" display-name-key="Subtitle_Display_Key" description-key="Subtitle_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="Review and take action on requests that require your approval."/>
     <property name="requestIdField" display-name-key="RequestIdField_Display_Key" description-key="RequestIdField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="requestId"/>
@@ -16,6 +16,11 @@
     <property name="itemNameField" display-name-key="ItemNameField_Display_Key" description-key="ItemNameField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="itemName"/>
     <property name="itemTypeField" display-name-key="ItemTypeField_Display_Key" description-key="ItemTypeField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="itemType"/>
     <property name="itemStatusField" display-name-key="ItemStatusField_Display_Key" description-key="ItemStatusField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="status"/>
+    <property name="itemStartDateField" display-name-key="ItemStartDateField_Display_Key" description-key="ItemStartDateField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="StartDate"/>
+    <property name="itemEndDateField" display-name-key="ItemEndDateField_Display_Key" description-key="ItemEndDateField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="EndDate"/>
+    <!-- v2: optional, additive -->
+    <property name="itemPlacementIdField" display-name-key="ItemPlacementIdField_Display_Key" description-key="ItemPlacementIdField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="PlacementId"/>
+    <property name="requestLevelTypes" display-name-key="RequestLevelTypes_Display_Key" description-key="RequestLevelTypes_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value=""/>
     <property name="historyIdField" display-name-key="HistoryIdField_Display_Key" description-key="HistoryIdField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="historyId"/>
     <property name="historyRequestIdField" display-name-key="HistoryRequestIdField_Display_Key" description-key="HistoryRequestIdField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="requestId"/>
     <property name="historyActionLabelField" display-name-key="HistoryActionLabelField_Display_Key" description-key="HistoryActionLabelField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="actionLabel"/>
@@ -27,17 +32,13 @@
     <property name="commentAuthorField" display-name-key="CommentAuthorField_Display_Key" description-key="CommentAuthorField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="author"/>
     <property name="commentTimestampField" display-name-key="CommentTimestampField_Display_Key" description-key="CommentTimestampField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="timestamp"/>
     <property name="commentTextField" display-name-key="CommentTextField_Display_Key" description-key="CommentTextField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="text"/>
-    <!-- v2: optional item columns shown on each item row (dates, placement) -->
-    <property name="itemStartDateField" display-name-key="ItemStartDateField_Display_Key" description-key="ItemStartDateField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="startDate"/>
-    <property name="itemEndDateField" display-name-key="ItemEndDateField_Display_Key" description-key="ItemEndDateField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="endDate"/>
-    <property name="itemPlacementIdField" display-name-key="ItemPlacementIdField_Display_Key" description-key="ItemPlacementIdField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="placementId"/>
-    <!-- v2: request types that get the whole-request decision bar (semicolon separated, case-insensitive) -->
-    <property name="requestLevelTypes" display-name-key="RequestLevelTypes_Display_Key" description-key="RequestLevelTypes_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="Campaign;Campaign (Gamification)"/>
     <property name="ApprovalConfigJson" display-name-key="ApprovalConfigJson_Display_Key" description-key="ApprovalConfigJson_Desc_Key" of-type="Multiple" usage="input" required="false" default-value=""/>
     <property name="ItemAvailabilityJson" display-name-key="ItemAvailabilityJson_Display_Key" description-key="ItemAvailabilityJson_Desc_Key" of-type="Multiple" usage="input" required="false" default-value=""/>
     <property name="showSearch" display-name-key="ShowSearch_Display_Key" description-key="ShowSearch_Desc_Key" of-type="TwoOptions" usage="input" required="false" default-value="true"/>
     <property name="showFilter" display-name-key="ShowFilter_Display_Key" description-key="ShowFilter_Desc_Key" of-type="TwoOptions" usage="input" required="false" default-value="true"/>
     <property name="showSummaryCards" display-name-key="ShowSummaryCards_Display_Key" description-key="ShowSummaryCards_Desc_Key" of-type="TwoOptions" usage="input" required="false" default-value="true"/>
+    <property name="allowRequestActions" display-name-key="AllowRequestActions_Display_Key" description-key="AllowRequestActions_Desc_Key" of-type="TwoOptions" usage="input" required="false" default-value="true"/>
+    <property name="allowItemActions" display-name-key="AllowItemActions_Display_Key" description-key="AllowItemActions_Desc_Key" of-type="TwoOptions" usage="input" required="false" default-value="true"/>
     <property name="emptyStateTitle" display-name-key="EmptyStateTitle_Display_Key" description-key="EmptyStateTitle_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="No approvals waiting"/>
     <property name="emptyStateSubtitle" display-name-key="EmptyStateSubtitle_Display_Key" description-key="EmptyStateSubtitle_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="You're all caught up."/>
     <property name="IsProcessing" display-name-key="IsProcessing_Display_Key" description-key="IsProcessing_Desc_Key" of-type="TwoOptions" usage="input" required="false" default-value="false"/>
@@ -49,45 +50,14 @@
     <property name="ItemActionPayloadJson" display-name-key="ItemActionPayloadJson_Display_Key" description-key="ItemActionPayloadJson_Desc_Key" of-type="Multiple" usage="output" required="false"/>
     <property name="ItemActionSequence" display-name-key="ItemActionSequence_Display_Key" description-key="ItemActionSequence_Desc_Key" of-type="Whole.None" usage="output" required="false"/>
     <property name="PendingDateChangeItemId" display-name-key="PendingDateChangeItemId_Display_Key" description-key="PendingDateChangeItemId_Desc_Key" of-type="SingleLine.Text" usage="output" required="false"/>
-    <data-set name="requests" display-name-key="Requests_Display_Key" description-key="Requests_Desc_Key">
-      <property-set name="requestId" display-name-key="Column_RequestId_Display_Key" description-key="Column_RequestId_Desc_Key" of-type="SingleLine.Text" usage="bound" required="true"/>
-      <property-set name="campaign" display-name-key="Column_Campaign_Display_Key" description-key="Column_Campaign_Desc_Key" of-type="SingleLine.Text" usage="bound" required="false"/>
-      <property-set name="requestType" display-name-key="Column_RequestType_Display_Key" description-key="Column_RequestType_Desc_Key" of-type="SingleLine.Text" usage="bound" required="false"/>
-      <property-set name="requestedStartDate" display-name-key="Column_RequestedStartDate_Display_Key" description-key="Column_RequestedStartDate_Desc_Key" of-type="DateAndTime.DateOnly" usage="bound" required="false"/>
-      <property-set name="requestedEndDate" display-name-key="Column_RequestedEndDate_Display_Key" description-key="Column_RequestedEndDate_Desc_Key" of-type="DateAndTime.DateOnly" usage="bound" required="false"/>
-      <property-set name="submittedBy" display-name-key="Column_SubmittedBy_Display_Key" description-key="Column_SubmittedBy_Desc_Key" of-type="SingleLine.Text" usage="bound" required="false"/>
-      <property-set name="approver" display-name-key="Column_Approver_Display_Key" description-key="Column_Approver_Desc_Key" of-type="SingleLine.Text" usage="bound" required="false"/>
-      <property-set name="status" display-name-key="Column_Status_Display_Key" description-key="Column_Status_Desc_Key" of-type="SingleLine.Text" usage="bound" required="true"/>
-    </data-set>
-    <data-set name="items" display-name-key="Items_Display_Key" description-key="Items_Desc_Key">
-      <property-set name="itemId" display-name-key="Column_ItemId_Display_Key" description-key="Column_ItemId_Desc_Key" of-type="SingleLine.Text" usage="bound" required="true"/>
-      <property-set name="itemRequestId" display-name-key="Column_ItemRequestId_Display_Key" description-key="Column_ItemRequestId_Desc_Key" of-type="SingleLine.Text" usage="bound" required="true"/>
-      <property-set name="itemName" display-name-key="Column_ItemName_Display_Key" description-key="Column_ItemName_Desc_Key" of-type="SingleLine.Text" usage="bound" required="true"/>
-      <property-set name="itemType" display-name-key="Column_ItemType_Display_Key" description-key="Column_ItemType_Desc_Key" of-type="SingleLine.Text" usage="bound" required="false"/>
-      <property-set name="itemStatus" display-name-key="Column_ItemStatus_Display_Key" description-key="Column_ItemStatus_Desc_Key" of-type="SingleLine.Text" usage="bound" required="true"/>
-      <property-set name="itemStartDate" display-name-key="Column_ItemStartDate_Display_Key" description-key="Column_ItemStartDate_Desc_Key" of-type="DateAndTime.DateOnly" usage="bound" required="false"/>
-      <property-set name="itemEndDate" display-name-key="Column_ItemEndDate_Display_Key" description-key="Column_ItemEndDate_Desc_Key" of-type="DateAndTime.DateOnly" usage="bound" required="false"/>
-      <property-set name="itemPlacementId" display-name-key="Column_ItemPlacementId_Display_Key" description-key="Column_ItemPlacementId_Desc_Key" of-type="SingleLine.Text" usage="bound" required="false"/>
-    </data-set>
-    <data-set name="history" display-name-key="History_Display_Key" description-key="History_Desc_Key">
-      <property-set name="historyId" display-name-key="Column_HistoryId_Display_Key" description-key="Column_HistoryId_Desc_Key" of-type="SingleLine.Text" usage="bound" required="true"/>
-      <property-set name="historyRequestId" display-name-key="Column_HistoryRequestId_Display_Key" description-key="Column_HistoryRequestId_Desc_Key" of-type="SingleLine.Text" usage="bound" required="true"/>
-      <property-set name="actionLabel" display-name-key="Column_ActionLabel_Display_Key" description-key="Column_ActionLabel_Desc_Key" of-type="SingleLine.Text" usage="bound" required="true"/>
-      <property-set name="actor" display-name-key="Column_Actor_Display_Key" description-key="Column_Actor_Desc_Key" of-type="SingleLine.Text" usage="bound" required="false"/>
-      <property-set name="timestamp" display-name-key="Column_HistoryTimestamp_Display_Key" description-key="Column_HistoryTimestamp_Desc_Key" of-type="DateAndTime.DateAndTime" usage="bound" required="false"/>
-      <property-set name="comment" display-name-key="Column_HistoryComment_Display_Key" description-key="Column_HistoryComment_Desc_Key" of-type="SingleLine.Text" usage="bound" required="false"/>
-    </data-set>
-    <data-set name="comments" display-name-key="Comments_Display_Key" description-key="Comments_Desc_Key">
-      <property-set name="commentId" display-name-key="Column_CommentId_Display_Key" description-key="Column_CommentId_Desc_Key" of-type="SingleLine.Text" usage="bound" required="true"/>
-      <property-set name="commentRequestId" display-name-key="Column_CommentRequestId_Display_Key" description-key="Column_CommentRequestId_Desc_Key" of-type="SingleLine.Text" usage="bound" required="true"/>
-      <property-set name="author" display-name-key="Column_Author_Display_Key" description-key="Column_Author_Desc_Key" of-type="SingleLine.Text" usage="bound" required="false"/>
-      <property-set name="commentTimestamp" display-name-key="Column_CommentTimestamp_Display_Key" description-key="Column_CommentTimestamp_Desc_Key" of-type="DateAndTime.DateAndTime" usage="bound" required="false"/>
-      <property-set name="text" display-name-key="Column_CommentText_Display_Key" description-key="Column_CommentText_Desc_Key" of-type="Multiple" usage="bound" required="true"/>
-    </data-set>
+    <data-set name="requests" display-name-key="Requests_Display_Key" description-key="Requests_Desc_Key"/>
+    <data-set name="items" display-name-key="Items_Display_Key" description-key="Items_Desc_Key"/>
+    <data-set name="history" display-name-key="History_Display_Key" description-key="History_Desc_Key"/>
+    <data-set name="comments" display-name-key="Comments_Display_Key" description-key="Comments_Desc_Key"/>
     <resources>
       <code path="index.ts" order="1"/>
-      <css path="styles/ULPApprovalManagement.css" order="1"/>
-      <resx path="strings/ULPApprovalManagement.1033.resx" version="1.0.0"/>
+      <css path="styles/ApprovalUIManagement.css" order="1"/>
+      <resx path="strings/ApprovalUIManagement.1033.resx" version="1.0.0"/>
     </resources>
   </control>
 </manifest>

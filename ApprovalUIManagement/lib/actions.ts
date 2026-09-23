@@ -42,7 +42,7 @@ function inferScope(a: ApprovalAction): ActionScope {
     return "both";
 }
 
-/** Parses ApprovalConfigJson. Invalid or empty input falls back to the defaults, as in 1.x. */
+/** Parses ApprovalConfigJson. Invalid or empty input falls back to the defaults, as in 1.6. */
 export function parseActions(json: string): ApprovalAction[] {
     const fallback = DEFAULT_ACTIONS.filter((a) => a.active);
     try {
@@ -106,6 +106,12 @@ export function toneForActionLabel(label: string): Tone {
     if (s.indexOf("approve") !== -1 || s.indexOf("confirm") !== -1) return "success";
     return "neutral";
 }
+
+/**
+ * Types block A of the ApprovalScreen handler cascades to items and bookings (varCascade).
+ * Only used to predict what the lists will show after a whole-request decision.
+ */
+export const CASCADE_TYPES = ["Campaign", "Campaign (Gamification)"];
 
 export function matchesType(requestType: string | undefined, list: string[]): boolean {
     const t = norm(requestType);

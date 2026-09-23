@@ -7,7 +7,7 @@ export default tseslint.config(
     js.configs.recommended,
     ...tseslint.configs.recommended,
     {
-        files: ["ULPApprovalManagement/**/*.{ts,tsx}"],
+        files: ["ApprovalUIManagement/**/*.{ts,tsx}", "MarketingSlotCalendar/**/*.{ts,tsx}"],
         plugins: { "react-hooks": reactHooks },
         rules: {
             ...reactHooks.configs.recommended.rules,

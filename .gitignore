@@ -5,3 +5,4 @@ bin/
 dist/
 harness/bundle.js
 *.log
+**/generated/
