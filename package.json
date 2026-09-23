@@ -1,7 +1,7 @@
 {
   "name": "ulp-approval-management",
   "version": "2.0.0",
-  "description": "ULP Hub approval inbox PCF control (request- and item-level approval)",
+  "description": "ULP Hub PCF controls: approval inbox (ApprovalUIManagement) and slot calendar (MarketingSlotCalendar)",
   "private": true,
   "scripts": {
     "build": "pcf-scripts build --buildMode production",

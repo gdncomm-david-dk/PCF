@@ -1,3 +1,14 @@
+# ULP Hub PCF controls
+
+| Control | Solution | Docs |
+|---|---|---|
+| `PowerAppsVibe.ApprovalUIManagement` — approval inbox (request- and item-level) | `ApprovalUIManagement` 1.6 → 2.0 | this page |
+| `DK.Components.MarketingSlotCalendar` — placement × day slot calendar | `MarketingSlotCalendarSolution` 1.1 → 2.0 | [docs/MarketingSlotCalendar.md](docs/MarketingSlotCalendar.md) |
+
+Both are upgrades in place: same component names and contracts, so the existing screens keep working.
+
+---
+
 # ApprovalUIManagement — PCF control v2
 
 Source for the `PowerAppsVibe.ApprovalUIManagement` code component (solution `ApprovalUIManagement`,
@@ -82,13 +93,15 @@ to the config to bring it back.
 
 ```bash
 npm install
-npm run build          # pcf-scripts: lint + typecheck + bundle -> out/controls/ApprovalUIManagement
+npm run build          # pcf-scripts: lint + typecheck + bundle -> out/controls/{ApprovalUIManagement,MarketingSlotCalendar}
 npm run harness        # http://localhost:8181 - mock datasets + a JS copy of the Power Fx cascade/roll-up
+                       # http://localhost:8181/harness/calendar.html - slot calendar harness
 npm run package -- --base path/to/ApprovalUIManagement_1_6_0_0_managed.zip --version 2.0.0.0
+npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --version 2.0.0.0
 ```
 
-`npm run package` takes an existing solution export and replaces only the ApprovalUIManagement
-control (name read from the built manifest and the solution's publisher prefix). It keeps everything else
+`npm run package` takes an existing solution export and replaces only the code component(s) it
+contains with the fresh build (names read from the built manifests and the solution's publisher prefix). It keeps everything else
 in the zip and the managed flag, bumps the version, and writes `dist/ApprovalUIManagement_2_0_0_0_managed.zip`. Import that zip over the current
 solution (**Solutions → Import → Upgrade**). Then, in the canvas app: **Get more components → Code →
 refresh the component**, and republish.
@@ -106,6 +119,12 @@ ApprovalUIManagement/
   lib/                        types, action config, dataset mapping, formatting
   components/                 App, Inbox, Detail, ItemsPanel, Dialogs, Primitives, Icons
   styles/                     Blibli tokens, all scoped under .uam-root
-harness/                      local test page (not shipped)
+MarketingSlotCalendar/
+  ControlManifest.Input.xml   1.1 contract + three optional v2 properties (virtual control, platform React)
+  index.ts                    PCF lifecycle, outputs, payload
+  lib/                        types, dates, capacity rules, dataset / JSON reading, sample data
+  components/                 App, CapacityGrid, WeekBoard, Timeline, ListView, DayPanel, BookingDialog, Agenda, ui
+  css/                        Blibli tokens, all scoped under .msc-root
+harness/                      local test pages (not shipped)
 solution/package-solution.js  builds the importable solution zip
 ```

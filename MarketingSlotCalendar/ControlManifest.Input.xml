@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <control namespace="DK.Components" constructor="MarketingSlotCalendar" version="2.0.0" display-name-key="Control_Display" description-key="Control_Desc" control-type="virtual" api-version="1.3.18">
+    <external-service-usage enabled="false"/>
+    <data-set name="placements" display-name-key="Placements_Display" description-key="Placements_Desc">
+      <property-set name="PlacementName" display-name-key="PlacementName_Display" description-key="PlacementName_Desc" of-type="SingleLine.Text" usage="bound" required="false"/>
+      <property-set name="DailyCapacity" display-name-key="DailyCapacity_Display" description-key="DailyCapacity_Desc" of-type="Whole.None" usage="bound" required="false"/>
+      <property-set name="PlacementStatus" display-name-key="PlacementStatus_Display" description-key="PlacementStatus_Desc" of-type="SingleLine.Text" usage="bound" required="false"/>
+    </data-set>
+    <data-set name="bookings" display-name-key="Bookings_Display" description-key="Bookings_Desc">
+      <property-set name="CampaignName" display-name-key="CampaignName_Display" description-key="CampaignName_Desc" of-type="SingleLine.Text" usage="bound" required="false"/>
+      <property-set name="BookingPlacementId" display-name-key="BookingPlacementId_Display" description-key="BookingPlacementId_Desc" of-type="SingleLine.Text" usage="bound" required="false"/>
+      <property-set name="BookingStartDate" display-name-key="BookingStartDate_Display" description-key="BookingStartDate_Desc" of-type="DateAndTime.DateOnly" usage="bound" required="false"/>
+      <property-set name="BookingEndDate" display-name-key="BookingEndDate_Display" description-key="BookingEndDate_Desc" of-type="DateAndTime.DateOnly" usage="bound" required="false"/>
+      <property-set name="BookingStartTime" display-name-key="BookingStartTime_Display" description-key="BookingStartTime_Desc" of-type="SingleLine.Text" usage="bound" required="false"/>
+      <property-set name="BookingEndTime" display-name-key="BookingEndTime_Display" description-key="BookingEndTime_Desc" of-type="SingleLine.Text" usage="bound" required="false"/>
+      <property-set name="Requester" display-name-key="Requester_Display" description-key="Requester_Desc" of-type="SingleLine.Text" usage="bound" required="false"/>
+      <property-set name="BookingStatus" display-name-key="BookingStatus_Display" description-key="BookingStatus_Desc" of-type="SingleLine.Text" usage="bound" required="false"/>
+      <property-set name="Notes" display-name-key="Notes_Display" description-key="Notes_Desc" of-type="Multiple" usage="bound" required="false"/>
+    </data-set>
+    <property name="PlacementsJson" display-name-key="PlacementsJson_Display" description-key="PlacementsJson_Desc" of-type="Multiple" usage="input" required="false"/>
+    <property name="BookingsJson" display-name-key="BookingsJson_Display" description-key="BookingsJson_Desc" of-type="Multiple" usage="input" required="false"/>
+    <property name="DataMode" display-name-key="DataMode_Display" description-key="DataMode_Desc" of-type="Enum" usage="input" required="false" default-value="Auto">
+      <value name="Auto" display-name-key="DataMode_Auto" description-key="DataMode_Auto_Desc">Auto</value>
+      <value name="Dataset" display-name-key="DataMode_Dataset" description-key="DataMode_Dataset_Desc">Dataset</value>
+      <value name="Json" display-name-key="DataMode_Json" description-key="DataMode_Json_Desc">Json</value>
+      <value name="Mock" display-name-key="DataMode_Mock" description-key="DataMode_Mock_Desc">Mock</value>
+    </property>
+    <property name="IncludeStatuses" display-name-key="IncludeStatuses_Display" description-key="IncludeStatuses_Desc" of-type="SingleLine.Text" usage="input" required="false"/>
+    <property name="FocusDate" display-name-key="FocusDate_Display" description-key="FocusDate_Desc" of-type="DateAndTime.DateOnly" usage="input" required="false"/>
+    <property name="DefaultView" display-name-key="DefaultView_Display" description-key="DefaultView_Desc" of-type="Enum" usage="input" required="false" default-value="Month">
+      <value name="Month" display-name-key="View_Month" description-key="View_Month_Desc">Month</value>
+      <value name="Week" display-name-key="View_Week" description-key="View_Week_Desc">Week</value>
+      <value name="Timeline" display-name-key="View_Timeline" description-key="View_Timeline_Desc">Timeline</value>
+      <value name="List" display-name-key="View_List" description-key="View_List_Desc">List</value>
+    </property>
+    <property name="WeekStartsOn" display-name-key="WeekStartsOn_Display" description-key="WeekStartsOn_Desc" of-type="Enum" usage="input" required="false" default-value="Monday">
+      <value name="Sunday" display-name-key="Week_Sunday" description-key="Week_Sunday_Desc">Sunday</value>
+      <value name="Monday" display-name-key="Week_Monday" description-key="Week_Monday_Desc">Monday</value>
+    </property>
+    <property name="AllowCreate" display-name-key="AllowCreate_Display" description-key="AllowCreate_Desc" of-type="TwoOptions" usage="input" required="false" default-value="true"/>
+    <property name="AllowEdit" display-name-key="AllowEdit_Display" description-key="AllowEdit_Desc" of-type="TwoOptions" usage="input" required="false" default-value="true"/>
+    <property name="AllowDelete" display-name-key="AllowDelete_Display" description-key="AllowDelete_Desc" of-type="TwoOptions" usage="input" required="false" default-value="true"/>
+    <property name="AllowDragDrop" display-name-key="AllowDragDrop_Display" description-key="AllowDragDrop_Desc" of-type="TwoOptions" usage="input" required="false" default-value="true"/>
+    <property name="HeaderTitle" display-name-key="HeaderTitle_Display" description-key="HeaderTitle_Desc" of-type="SingleLine.Text" usage="input" required="false" default-value="Marketing Slot Management"/>
+    <property name="HeaderSubtitle" display-name-key="HeaderSubtitle_Display" description-key="HeaderSubtitle_Desc" of-type="SingleLine.Text" usage="input" required="false" default-value="Manage campaign placements &amp; daily availability"/>
+    <property name="KpiDensity" display-name-key="KpiDensity_Display" description-key="KpiDensity_Desc" of-type="Enum" usage="input" required="false" default-value="Compact">
+      <value name="Compact" display-name-key="Kpi_Compact" description-key="Kpi_Compact_Desc">Compact</value>
+      <value name="Comfortable" display-name-key="Kpi_Comfortable" description-key="Kpi_Comfortable_Desc">Comfortable</value>
+      <value name="Hidden" display-name-key="Kpi_Hidden" description-key="Kpi_Hidden_Desc">Hidden</value>
+    </property>
+    <property name="IsLoading" display-name-key="IsLoading_Display" description-key="IsLoading_Desc" of-type="TwoOptions" usage="input" required="false" default-value="false"/>
+    <property name="ErrorMessage" display-name-key="ErrorMessage_Display" description-key="ErrorMessage_Desc" of-type="SingleLine.Text" usage="input" required="false"/>
+    <property name="CapacityStatuses" display-name-key="CapacityStatuses_Display" description-key="CapacityStatuses_Desc" of-type="SingleLine.Text" usage="input" required="false"/>
+    <property name="CurrentUserEmail" display-name-key="CurrentUserEmail_Display" description-key="CurrentUserEmail_Desc" of-type="SingleLine.Text" usage="input" required="false"/>
+    <property name="MaskOtherBookings" display-name-key="MaskOtherBookings_Display" description-key="MaskOtherBookings_Desc" of-type="TwoOptions" usage="input" required="false" default-value="false"/>
+    <property name="SelectedBookingId" display-name-key="SelectedBookingId_Display" description-key="SelectedBookingId_Desc" of-type="SingleLine.Text" usage="output"/>
+    <property name="SelectedPlacementId" display-name-key="SelectedPlacementId_Display" description-key="SelectedPlacementId_Desc" of-type="SingleLine.Text" usage="output"/>
+    <property name="SelectedDate" display-name-key="SelectedDate_Display" description-key="SelectedDate_Desc" of-type="SingleLine.Text" usage="output"/>
+    <property name="LastAction" display-name-key="LastAction_Display" description-key="LastAction_Desc" of-type="SingleLine.Text" usage="output"/>
+    <property name="LastActionPayload" display-name-key="LastActionPayload_Display" description-key="LastActionPayload_Desc" of-type="Multiple" usage="output"/>
+    <property name="EventCount" display-name-key="EventCount_Display" description-key="EventCount_Desc" of-type="Whole.None" usage="output"/>
+    <resources>
+      <code path="index.ts" order="1"/>
+      <platform-library name="React" version="16.14.0"/>
+      <css path="css/MarketingSlotCalendar.css" order="1"/>
+      <resx path="strings/MarketingSlotCalendar.1033.resx" version="1.0.0"/>
+    </resources>
+  </control>
+</manifest>
