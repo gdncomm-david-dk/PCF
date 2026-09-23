@@ -11,7 +11,7 @@ import {
     ItemActionPayload,
     RequestActionPayload
 } from "../lib/types";
-import { itemActions, matchesType, parseActions, requestActions } from "../lib/actions";
+import { CASCADE_TYPES, itemActions, matchesType, parseActions, requestActions } from "../lib/actions";
 import { scopeTo } from "../lib/data";
 import { plural } from "../lib/format";
 import { Inbox } from "./Inbox";
@@ -82,10 +82,13 @@ export const App: React.FC<AppProps> = (props) => {
 
     const actions = React.useMemo(() => parseActions(config.approvalConfigJson), [config.approvalConfigJson]);
     const reqActs = React.useMemo(() => requestActions(actions), [actions]);
-    const itemActs = React.useMemo(() => itemActions(actions), [actions]);
+    const itemActs = React.useMemo(() => (config.allowItemActions ? itemActions(actions) : []), [actions, config.allowItemActions]);
 
     const open = requests.rows.find((r) => r.requestId === openId);
-    const requestLevel = !!open && matchesType(open.requestType, config.requestLevelTypes);
+    const requestLevel =
+        !!open && config.allowRequestActions && (config.requestLevelTypes.length === 0 || matchesType(open.requestType, config.requestLevelTypes));
+    // whether the handler cascades a whole-request APPROVE / REJECT down to the items
+    const cascades = !!open && matchesType(open.requestType, CASCADE_TYPES);
 
     const scopedItems = React.useMemo(() => (open ? scopeTo(props.items.rows, open.requestId) : []), [props.items.rows, open]);
     const scopedHistory = React.useMemo(() => (open ? scopeTo(props.history.rows, open.requestId) : []), [props.history.rows, open]);
@@ -165,7 +168,7 @@ export const App: React.FC<AppProps> = (props) => {
         setReqInflight((m) => new Map(m).set(open.requestId, { at, expected: action.resultStatus.trim().toLowerCase() }));
         // the handler cascades APPROVE / REJECT to every item of a request-level type
         const key = action.key.toUpperCase();
-        if (requestLevel && (key === "APPROVE" || key === "REJECT")) {
+        if (cascades && (key === "APPROVE" || key === "REJECT")) {
             const expected = key === "APPROVE" ? "approved" : "rejected";
             setItemInflight((m) => {
                 const n = new Map(m);
@@ -211,7 +214,7 @@ export const App: React.FC<AppProps> = (props) => {
                 action: a,
                 names: [open.campaign || open.requestId],
                 note:
-                    requestLevel && (key === "APPROVE" || key === "REJECT") && count > 0
+                    cascades && (key === "APPROVE" || key === "REJECT") && count > 0
                         ? `Also sets all ${plural(count, "item")} to ${key === "APPROVE" ? "Approved" : "Rejected"} and updates their bookings.`
                         : undefined
             }
@@ -256,6 +259,7 @@ export const App: React.FC<AppProps> = (props) => {
             history={{ ...props.history, rows: scopedHistory }}
             comments={{ ...props.comments, rows: scopedComments }}
             requestLevel={requestLevel}
+            cascades={cascades}
             requestActions={reqActs}
             itemActions={itemActs}
             requestBusy={reqInflight.has(open.requestId)}

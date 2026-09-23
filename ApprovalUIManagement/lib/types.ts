@@ -44,7 +44,7 @@ export interface CommentEntry {
 export type ActionScope = "request" | "item" | "both";
 
 /**
- * One configurable action. Same shape the 1.x control read from ApprovalConfigJson;
+ * One configurable action. Same shape the 1.6 control read from ApprovalConfigJson;
  * `scope` is new and optional.
  */
 export interface ApprovalAction {
@@ -59,14 +59,14 @@ export interface ApprovalAction {
     scope?: ActionScope;
 }
 
-/** Payload on ApprovalActionPayloadJson — unchanged from 1.x. */
+/** Payload on ApprovalActionPayloadJson — unchanged from 1.6. */
 export interface RequestActionPayload {
     action: string;
     requestId: string[];
     comment?: string;
 }
 
-/** Payload on ItemActionPayloadJson — unchanged from 1.x. */
+/** Payload on ItemActionPayloadJson — unchanged from 1.6. */
 export interface ItemActionPayload {
     action: string;
     itemId: string[];
@@ -75,11 +75,19 @@ export interface ItemActionPayload {
     revisedEndDate?: string;
 }
 
-/** ItemAvailabilityJson: `{ availableFrom, availableTo }` (yyyy-mm-dd), optional `freeDates`. */
+/**
+ * ItemAvailabilityJson, parsed. Same input as 1.6:
+ *   { availableFrom?, availableTo?, blockedDates? | fullDates?, placementName?, dailyCapacity? }
+ * plus the v2-only `freeDates` (shown as "Nearest free" chips).
+ */
 export interface ItemAvailability {
-    availableFrom: string;
-    availableTo: string;
-    freeDates?: string[];
+    /** set when the JSON is not an object, or the window keys are present but invalid */
+    bad: boolean;
+    window: { availableFrom: string; availableTo: string } | null;
+    blocked: string[];
+    freeDates: string[];
+    placementName: string;
+    dailyCapacity: number | null;
 }
 
 export interface DatasetState<T> {
@@ -98,5 +106,10 @@ export interface ControlConfig {
     showSummaryCards: boolean;
     emptyStateTitle: string;
     emptyStateSubtitle: string;
+    /** 1.6: hides the whole-request decision bar when false */
+    allowRequestActions: boolean;
+    /** 1.6: hides every item action when false */
+    allowItemActions: boolean;
+    /** v2: optional type filter on top of allowRequestActions; empty = every type */
     requestLevelTypes: string[];
 }

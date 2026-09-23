@@ -60,9 +60,7 @@ export const ItemsPanel: React.FC<ItemsPanelProps> = (props) => {
 
     const pendingCount = items.filter((i) => !isFinalItemStatus(i.status)).length;
     const decidedCount = items.length - pendingCount;
-    const visible = items.filter((i) =>
-        filter === "all" ? true : filter === "pending" ? !isFinalItemStatus(i.status) : isFinalItemStatus(i.status)
-    );
+    const visible = items.filter((i) => (filter === "all" ? true : filter === "pending" ? !isFinalItemStatus(i.status) : isFinalItemStatus(i.status)));
     const selectable = visible.filter((i) => !inflight.has(i.itemId));
     const allVisibleSelected = selectable.length > 0 && selectable.every((i) => selected.has(i.itemId));
 
@@ -87,6 +85,7 @@ export const ItemsPanel: React.FC<ItemsPanelProps> = (props) => {
     if (items.length === 0) return <EmptyState title="No items on this request" subtitle="There are no placements to decide." />;
 
     const compact = breakpoint === "mobile";
+    const readOnly = actions.length === 0;
     const bulkActions = actions.filter((a) => !a.requiresDateChange || selectedIds.length === 1);
     const hiddenDateActions = selectedIds.length > 1 && actions.some((a) => a.requiresDateChange);
 
@@ -98,7 +97,7 @@ export const ItemsPanel: React.FC<ItemsPanelProps> = (props) => {
                         [
                             ["all", "All", items.length],
                             ["pending", "Pending", pendingCount],
-                            ["decided", "Decided", decidedCount]
+                            ["decided", "Decided", decidedCount],
                         ] as [ItemFilter, string, number][]
                     ).map(([k, label, n]) => (
                         <button
@@ -113,7 +112,7 @@ export const ItemsPanel: React.FC<ItemsPanelProps> = (props) => {
                         </button>
                     ))}
                 </div>
-                {pendingCount > 0 && !disabled && (
+                {pendingCount > 0 && !disabled && !readOnly && (
                     <button type="button" className="uam-link" onClick={selectPending}>
                         Select all pending
                     </button>
@@ -121,10 +120,12 @@ export const ItemsPanel: React.FC<ItemsPanelProps> = (props) => {
             </div>
 
             <div className="uam-item-list" role="list">
-                <label className="uam-item-list__head">
-                    <input type="checkbox" checked={allVisibleSelected} onChange={toggleAll} disabled={disabled || selectable.length === 0} />
-                    <span>{selectedIds.length > 0 ? `${plural(selectedIds.length, "item")} selected` : `Select ${filter === "all" ? "all" : filter}`}</span>
-                </label>
+                {!readOnly && (
+                    <label className="uam-item-list__head">
+                        <input type="checkbox" checked={allVisibleSelected} onChange={toggleAll} disabled={disabled || selectable.length === 0} />
+                        <span>{selectedIds.length > 0 ? `${plural(selectedIds.length, "item")} selected` : `Select ${filter === "all" ? "all" : filter}`}</span>
+                    </label>
+                )}
                 {visible.length === 0 && <p className="uam-muted uam-item-list__none">No {filter} items.</p>}
                 {visible.map((item) => {
                     const busy = inflight.has(item.itemId);
@@ -137,14 +138,16 @@ export const ItemsPanel: React.FC<ItemsPanelProps> = (props) => {
                             role="listitem"
                             className={cx("uam-item", selected.has(item.itemId) && "uam-item--selected", busy && "uam-item--busy", final && "uam-item--final")}
                         >
-                            <input
-                                type="checkbox"
-                                className="uam-item__check"
-                                checked={selected.has(item.itemId)}
-                                onChange={() => toggle(item.itemId)}
-                                disabled={disabled || busy}
-                                aria-label={`Select ${item.itemName}`}
-                            />
+                            {!readOnly && (
+                                <input
+                                    type="checkbox"
+                                    className="uam-item__check"
+                                    checked={selected.has(item.itemId)}
+                                    onChange={() => toggle(item.itemId)}
+                                    disabled={disabled || busy}
+                                    aria-label={`Select ${item.itemName}`}
+                                />
+                            )}
                             <div className="uam-item__body">
                                 <div className="uam-item__top">
                                     <span className="uam-item__name">{item.itemName || item.itemId}</span>
@@ -172,39 +175,41 @@ export const ItemsPanel: React.FC<ItemsPanelProps> = (props) => {
                                     )}
                                 </div>
                             </div>
-                            <div className={cx("uam-item__actions", compact && "uam-item__actions--compact")}>
-                                {open ? (
-                                    actions.map((a) => (
+                            {!readOnly && (
+                                <div className={cx("uam-item__actions", compact && "uam-item__actions--compact")}>
+                                    {open ? (
+                                        actions.map((a) => (
+                                            <Button
+                                                key={a.key}
+                                                size="sm"
+                                                variant={variantFor(a)}
+                                                icon={iconFor(a)}
+                                                disabled={disabled || busy}
+                                                onClick={() => onAction(a, [item.itemId])}
+                                                title={`${a.label} — ${item.itemName}`}
+                                            >
+                                                {compact && a.requiresDateChange ? "Change dates" : a.label}
+                                            </Button>
+                                        ))
+                                    ) : (
                                         <Button
-                                            key={a.key}
                                             size="sm"
-                                            variant={variantFor(a)}
-                                            icon={iconFor(a)}
+                                            variant="ghost"
+                                            icon={<UndoIcon size={14} />}
                                             disabled={disabled || busy}
-                                            onClick={() => onAction(a, [item.itemId])}
-                                            title={`${a.label} — ${item.itemName}`}
+                                            onClick={() => setExpanded((s) => new Set(s).add(item.itemId))}
                                         >
-                                            {compact && a.requiresDateChange ? "Change dates" : a.label}
+                                            Change decision
                                         </Button>
-                                    ))
-                                ) : (
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        icon={<UndoIcon size={14} />}
-                                        disabled={disabled || busy}
-                                        onClick={() => setExpanded((s) => new Set(s).add(item.itemId))}
-                                    >
-                                        Change decision
-                                    </Button>
-                                )}
-                            </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     );
                 })}
             </div>
 
-            {selectedIds.length > 0 && (
+            {selectedIds.length > 0 && !readOnly && (
                 <div className="uam-bulk" role="region" aria-label="Bulk item actions">
                     <span className="uam-bulk__count">{plural(selectedIds.length, "item")} selected</span>
                     <div className="uam-bulk__actions">

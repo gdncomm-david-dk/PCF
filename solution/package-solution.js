@@ -1,10 +1,10 @@
 /*
- * Builds an importable solution zip by taking an existing ULPApprovalManagementSolution export
- * and replacing only the ULPApprovalManagement control with the freshly built one.
- * ModernActionList and ModernAnalyticsChart are copied byte-for-byte from the base zip.
+ * Builds an importable solution zip by taking an existing solution export (normally
+ * ApprovalUIManagement_1_6_0_0_managed.zip) and replacing only the ApprovalUIManagement control
+ * with the freshly built one. Anything else in the base zip is copied byte-for-byte.
  *
  *   npm run build
- *   npm run package -- --base <ULPApprovalManagementSolution_x_managed.zip> [--version 2.0.0.0] [--out dist]
+ *   npm run package -- --base <ApprovalUIManagement_x_managed.zip> [--version 2.0.0.0] [--out dist]
  *
  * The Managed flag is kept from the base zip, so a managed base produces a managed upgrade.
  */
@@ -17,9 +17,8 @@ function arg(name, fallback) {
     return i !== -1 && process.argv[i + 1] ? process.argv[i + 1] : fallback;
 }
 
-const CONTROL = "pav_PowerAppsVibe.ULPApprovalManagement";
 const root = path.resolve(__dirname, "..");
-const built = path.join(root, "out", "controls", "ULPApprovalManagement");
+const built = path.join(root, "out", "controls", "ApprovalUIManagement");
 const base = arg("base");
 const version = arg("version", "2.0.0.0");
 const outDir = path.resolve(root, arg("out", "dist"));
@@ -27,12 +26,20 @@ const outDir = path.resolve(root, arg("out", "dist"));
 (async () => {
     if (!base) throw new Error("--base <existing solution zip> is required");
     if (!/^\d+\.\d+\.\d+\.\d+$/.test(version)) throw new Error(`--version must look like 2.0.0.0, got ${version}`);
-    if (!fs.existsSync(path.join(built, "bundle.js"))) throw new Error("out/controls/ULPApprovalManagement is missing - run `npm run build` first");
+    if (!fs.existsSync(path.join(built, "bundle.js"))) throw new Error("out/controls/ApprovalUIManagement is missing - run `npm run build` first");
+
+    // the solution component name is <publisher prefix>_<namespace>.<constructor>
+    const manifest = fs.readFileSync(path.join(built, "ControlManifest.xml"), "utf8");
+    const ns = (manifest.match(/namespace="([^"]+)"/) || [])[1];
+    const ctor = (manifest.match(/constructor="([^"]+)"/) || [])[1];
 
     const zip = await JSZip.loadAsync(fs.readFileSync(base));
     const solutionXml = zip.file("solution.xml");
     if (!solutionXml) throw new Error("base zip has no solution.xml");
     let sol = await solutionXml.async("string");
+    const prefix = (sol.match(/<CustomizationPrefix>([^<]+)<\/CustomizationPrefix>/) || [])[1];
+    const uniqueName = (sol.match(/<SolutionManifest>[\s\S]*?<UniqueName>([^<]+)<\/UniqueName>/) || [])[1];
+    const CONTROL = `${prefix}_${ns}.${ctor}`;
     const managed = /<Managed>1<\/Managed>/.test(sol);
     const oldVersion = (sol.match(/<Version>([^<]+)<\/Version>/) || [])[1];
     sol = sol.replace(/<Version>[^<]+<\/Version>/, `<Version>${version}</Version>`);
@@ -51,7 +58,7 @@ const outDir = path.resolve(root, arg("out", "dist"));
     }
 
     fs.mkdirSync(outDir, { recursive: true });
-    const name = `ULPApprovalManagementSolution_${version.replace(/\./g, "_")}${managed ? "_managed" : ""}.zip`;
+    const name = `${uniqueName}_${version.replace(/\./g, "_")}${managed ? "_managed" : ""}.zip`;
     const buf = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
     fs.writeFileSync(path.join(outDir, name), buf);
     console.log(`${name}  (${managed ? "managed" : "unmanaged"}, ${oldVersion} -> ${version}, ${(buf.length / 1024).toFixed(0)} KB)`);

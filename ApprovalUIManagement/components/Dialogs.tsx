@@ -127,18 +127,69 @@ export const DecisionDialog: React.FC<{
     );
 };
 
-function parseAvailability(json: string): ItemAvailability | null {
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+/** yyyy-mm-dd list from a string ("a, b; c") or an array of strings / { Value | value | date }. */
+function dateList(v: unknown): string[] {
+    const out: string[] = [];
+    const push = (x: unknown): void => {
+        if (x === null || x === undefined) return;
+        const s = String(x).trim();
+        if (/^\d{4}-\d{2}-\d{2}/.test(s) && out.length < 2000) out.push(s.slice(0, 10));
+    };
+    if (typeof v === "string") v.split(/[,;|\s]+/).forEach(push);
+    else if (Array.isArray(v))
+        v.forEach((x) => {
+            if (x && typeof x === "object") {
+                const o = x as Record<string, unknown>;
+                push(o.Value ?? o.value ?? o.date);
+            } else push(x);
+        });
+    return out;
+}
+
+/** null = nothing supplied (any period allowed). Same rules as 1.6. */
+export function parseAvailability(json: string): ItemAvailability | null {
+    if (!json || json.trim().length === 0) return null;
+    const empty: ItemAvailability = { bad: true, window: null, blocked: [], freeDates: [], placementName: "", dailyCapacity: null };
+    let v: unknown;
     try {
-        if (!json || json.trim().length === 0) return null;
-        const v = JSON.parse(json) as Partial<ItemAvailability>;
-        const re = /^\d{4}-\d{2}-\d{2}$/;
-        if (typeof v.availableFrom !== "string" || typeof v.availableTo !== "string") return null;
-        if (!re.test(v.availableFrom) || !re.test(v.availableTo)) return null;
-        const freeDates = Array.isArray(v.freeDates) ? v.freeDates.filter((d): d is string => typeof d === "string" && re.test(d)) : undefined;
-        return { availableFrom: v.availableFrom, availableTo: v.availableTo, freeDates };
+        v = JSON.parse(json);
     } catch {
-        return null;
+        return empty;
     }
+    if (typeof v !== "object" || v === null || Array.isArray(v)) return empty;
+    const o = v as Record<string, unknown>;
+    let window: ItemAvailability["window"] = null;
+    let bad = false;
+    if ("availableFrom" in o || "availableTo" in o) {
+        const f = o.availableFrom;
+        const t = o.availableTo;
+        if (typeof f === "string" && typeof t === "string" && DAY.test(f) && DAY.test(t) && f <= t) window = { availableFrom: f, availableTo: t };
+        else bad = true;
+    }
+    return {
+        bad,
+        window,
+        blocked: dateList(o.blockedDates ?? o.fullDates),
+        freeDates: dateList(o.freeDates),
+        placementName: typeof o.placementName === "string" ? o.placementName : "",
+        dailyCapacity: typeof o.dailyCapacity === "number" ? o.dailyCapacity : null
+    };
+}
+
+/** first blocked day inside [start, end], or "" */
+function firstBlocked(start: string, end: string, blocked: string[]): string {
+    if (!start || !end || blocked.length === 0) return "";
+    const set = new Set(blocked);
+    const d = new Date(`${start}T00:00:00`);
+    const last = new Date(`${end}T00:00:00`);
+    for (let i = 0; d <= last && i < 800; i++) {
+        const k = isoDay(d);
+        if (set.has(k)) return k;
+        d.setDate(d.getDate() + 1);
+    }
+    return "";
 }
 
 export const DateChangeDialog: React.FC<{
@@ -154,12 +205,23 @@ export const DateChangeDialog: React.FC<{
     const [end, setEnd] = React.useState(isoDay(item.endDate));
     const [comment, setComment] = React.useState("");
 
-    let problem: string | null = null;
-    if (start && end && end < start) problem = "The end date cannot be before the start date.";
-    else if (avail && start && end && (start < avail.availableFrom || end > avail.availableTo))
-        problem = "Revised dates must fall within the available period.";
+    // JSON supplied but unreadable -> the dialog cannot validate, so it refuses (1.6 behaviour)
+    const blockedInput = !!avail && avail.bad;
+    const win = avail?.window ?? null;
+    const blocked = avail?.blocked ?? [];
 
-    const valid = !!avail && start.length > 0 && end.length > 0 && problem === null && (!action.requiresComment || comment.trim().length > 0);
+    let problem: string | null = null;
+    if (start && end) {
+        const hit = firstBlocked(start, end, blocked);
+        if (end < start) problem = "The end date cannot be before the start date.";
+        else if (win && (start < win.availableFrom || end > win.availableTo)) problem = "Revised dates must fall within the available period.";
+        else if (hit)
+            problem = `${longDay(hit)} is already at daily capacity${avail?.placementName ? ` for ${avail.placementName}` : ""}${
+                avail?.dailyCapacity != null ? ` (${avail.dailyCapacity} slot/day)` : ""
+            } — pick another date.`;
+    }
+
+    const valid = !blockedInput && start.length > 0 && end.length > 0 && problem === null && (!action.requiresComment || comment.trim().length > 0);
 
     const pick = (d: string): void => {
         const len = item.startDate && item.endDate ? Math.round((item.endDate.getTime() - item.startDate.getTime()) / 86400000) : 0;
@@ -200,21 +262,34 @@ export const DateChangeDialog: React.FC<{
                 </div>
             </div>
 
-            {avail ? (
+            {blockedInput ? (
+                <p className="uam-callout uam-callout--danger">
+                    <AlertIcon size={16} />
+                    <span>Availability data is unavailable — revised dates cannot be validated.</span>
+                </p>
+            ) : win ? (
                 <p className="uam-callout uam-callout--info">
                     <CalendarIcon size={16} />
                     <span>
-                        Available {longDay(avail.availableFrom)} – {longDay(avail.availableTo)}
+                        Available {longDay(win.availableFrom)} – {longDay(win.availableTo)}
+                        {avail?.placementName ? ` · ${avail.placementName}` : ""}
                     </span>
                 </p>
             ) : (
-                <p className="uam-callout uam-callout--danger">
-                    <AlertIcon size={16} />
-                    <span>Availability is still loading or not provided — revised dates cannot be validated yet.</span>
+                <p className="uam-callout uam-callout--info">
+                    <CalendarIcon size={16} />
+                    <span>Any revised period is allowed{avail?.placementName ? ` · ${avail.placementName}` : ""}.</span>
                 </p>
             )}
 
-            {avail?.freeDates && avail.freeDates.length > 0 && (
+            {blocked.length > 0 && (
+                <p className="uam-muted uam-small">
+                    {avail?.dailyCapacity != null ? `${avail.dailyCapacity} slot/day · ` : ""}fully booked: {blocked.slice(0, 6).map(longDay).join(", ")}
+                    {blocked.length > 6 ? ` +${blocked.length - 6} more` : ""}
+                </p>
+            )}
+
+            {avail && avail.freeDates.length > 0 && (
                 <div className="uam-chips">
                     <span className="uam-chips__label">Nearest free</span>
                     {avail.freeDates.slice(0, 6).map((d) => (
@@ -234,10 +309,10 @@ export const DateChangeDialog: React.FC<{
                         type="date"
                         className="uam-input"
                         value={start}
-                        min={avail?.availableFrom}
-                        max={avail?.availableTo}
+                        min={win?.availableFrom}
+                        max={win?.availableTo}
                         onChange={(e) => setStart(e.target.value)}
-                        disabled={!avail}
+                        disabled={blockedInput}
                     />
                 </label>
                 <label className="uam-field">
@@ -248,10 +323,10 @@ export const DateChangeDialog: React.FC<{
                         type="date"
                         className="uam-input"
                         value={end}
-                        min={start || avail?.availableFrom}
-                        max={avail?.availableTo}
+                        min={start || win?.availableFrom}
+                        max={win?.availableTo}
                         onChange={(e) => setEnd(e.target.value)}
-                        disabled={!avail}
+                        disabled={blockedInput}
                     />
                 </label>
             </div>

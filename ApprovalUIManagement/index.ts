@@ -6,16 +6,16 @@ import { readComments, readHistory, readItems, readRequests } from "./lib/data";
 import { ControlConfig, ItemActionPayload, RequestActionPayload } from "./lib/types";
 
 /**
- * ULP Approval Management — v2.
+ * ApprovalUIManagement (ULP Hub) — v2.
  *
- * The output contract is the one the ApprovalScreen Power Fx handler reads, unchanged from 1.x:
+ * The output contract is the one the ApprovalScreen Power Fx handler reads, unchanged from 1.6:
  *   ActionSequence / ApprovalActionPayloadJson      { action, requestId: [id], comment? }
  *   ItemActionSequence / ItemActionPayloadJson      { action, itemId: [...], comment?, revisedStartDate?, revisedEndDate? }
  *   OpenRequestId, SelectedRequestIdsJson, SelectedItemIdsJson, PendingDateChangeItemId
  * A sequence only ever increments, so the handler's "sequence <> last seen" test fires once per press,
  * including when the same payload is sent twice.
  */
-export class ULPApprovalManagement implements ComponentFramework.StandardControl<IInputs, IOutputs> {
+export class ApprovalUIManagement implements ComponentFramework.StandardControl<IInputs, IOutputs> {
     private container!: HTMLDivElement;
     private notifyOutputChanged!: () => void;
     private context!: ComponentFramework.Context<IInputs>;
@@ -99,7 +99,7 @@ export class ULPApprovalManagement implements ComponentFramework.StandardControl
         this.notifyOutputChanged();
     };
 
-    /** 1.x refreshed only `requests`; every dataset the control shows is re-queried now. */
+    /** Re-queries every dataset the control shows (as 1.6 does). */
     private onRefresh = (): void => {
         const ps = this.context?.parameters;
         if (!ps) return;
@@ -139,7 +139,9 @@ export class ULPApprovalManagement implements ComponentFramework.StandardControl
             showSummaryCards: bool(ps.showSummaryCards, true),
             emptyStateTitle: str(ps.emptyStateTitle, "No approvals waiting"),
             emptyStateSubtitle: str(ps.emptyStateSubtitle, "You're all caught up."),
-            requestLevelTypes: str(ps.requestLevelTypes, "Campaign;Campaign (Gamification)")
+            allowRequestActions: bool(ps.allowRequestActions, true),
+            allowItemActions: bool(ps.allowItemActions, true),
+            requestLevelTypes: (ps.requestLevelTypes?.raw ?? "")
                 .split(";")
                 .map((s) => s.trim())
                 .filter((s) => s.length > 0)

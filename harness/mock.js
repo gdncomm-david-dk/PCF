@@ -60,11 +60,17 @@
     function log(s) { logEl.textContent = new Date().toLocaleTimeString() + "  " + s + "\n" + logEl.textContent; }
 
     let availability = "";
+    // ?allowRequest=0 / ?allowItem=0 mimic the app binding allowRequestActions / allowItemActions to false
+    const q = new URLSearchParams(location.search);
+    const flag = (k) => q.get(k) !== "0";
     const params = () => ({
         title: { raw: "Approval Inbox" },
         subtitle: { raw: "Decide ULP slot requests — whole request or placement by placement." },
         showSearch: { raw: true }, showFilter: { raw: true }, showSummaryCards: { raw: true },
         IsProcessing: { raw: false },
+        allowRequestActions: { raw: flag("allowRequest") },
+        allowItemActions: { raw: flag("allowItem") },
+        requestLevelTypes: { raw: q.get("types") || "" },
         ApprovalConfigJson: { raw: "" },
         ItemAvailabilityJson: { raw: availability },
         requests: dataset(db.requests, ["RequestId", "Campaign", "RequestType", "RequestedStartDate", "RequestedEndDate", "SubmittedBy", "Approver", "Status"]),
@@ -74,7 +80,7 @@
     });
     const context = () => ({ parameters: params(), mode: { trackContainerResize() {} } });
 
-    const control = new window.PowerAppsVibe.ULPApprovalManagement();
+    const control = new window.PowerAppsVibe.ApprovalUIManagement();
     let last = { ActionSequence: 0, ItemActionSequence: 0, PendingDateChangeItemId: "" };
     const me = "rizky.adiputra@gdn-commerce.com";
     const FINAL = ["Approved", "Confirmed", "Approved with Changes", "Rejected"];
@@ -90,7 +96,12 @@
             // what the app's ItemAvailabilityJson formula computes for the pending item
             const it = db.items.find((i) => i.ItemId === o.PendingDateChangeItemId);
             setTimeout(() => {
-                availability = JSON.stringify({ availableFrom: "2026-09-24", availableTo: "2026-10-15", freeDates: ["2026-09-28", "2026-09-29", "2026-10-01"] });
+                availability = JSON.stringify({
+                    availableFrom: "2026-09-24", availableTo: "2026-10-15",
+                    placementName: it ? it.ItemName : "", dailyCapacity: 1,
+                    blockedDates: ["2026-09-30", "2026-10-02"],
+                    freeDates: ["2026-09-28", "2026-09-29", "2026-10-01"]
+                });
                 log("ItemAvailabilityJson for " + (it && it.ItemId) + " = " + availability);
                 render();
             }, 400);
