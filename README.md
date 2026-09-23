@@ -96,7 +96,7 @@ npm install
 npm run build          # pcf-scripts: lint + typecheck + bundle -> out/controls/{ApprovalUIManagement,MarketingSlotCalendar}
 npm run harness        # http://localhost:8181 - mock datasets + a JS copy of the Power Fx cascade/roll-up
                        # http://localhost:8181/harness/calendar.html - slot calendar harness
-npm run package -- --base path/to/ApprovalUIManagement_1_6_0_0_managed.zip --version 2.0.0.0
+npm run package -- --base path/to/ApprovalUIManagement_1_6_0_0_managed.zip --version 2.0.0.1
 npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --version 2.0.0.0
 ```
 
