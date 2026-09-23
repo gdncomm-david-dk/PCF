@@ -1425,6 +1425,7 @@
     display: flex;
     gap: 5px;
     overflow-x: auto;
+    overflow-y: hidden;
     padding-bottom: 2px;
 }
 .msc-root .msc-avail__day {
@@ -1731,6 +1732,7 @@
 .msc-root.is-phone .msc-kpis {
     display: flex;
     overflow-x: auto;
+    overflow-y: hidden;
     scrollbar-width: none;
     margin: 0 -12px;
     padding: 0 12px;

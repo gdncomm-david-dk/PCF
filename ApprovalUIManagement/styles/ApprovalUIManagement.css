@@ -593,8 +593,15 @@
     gap: 4px;
     padding: 0 18px;
     border-bottom: 1px solid var(--uam-line);
+    /* overflow-x alone turns overflow-y to auto, and the tabs' -1px underline margin then shows a
+       vertical scrollbar; lock the vertical axis and keep the sideways scroll bar-less */
     overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
     flex: none;
+}
+.uam-root .uam-tabs::-webkit-scrollbar {
+    display: none;
 }
 .uam-root .uam-tabs__tab {
     display: inline-flex;
