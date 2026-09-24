@@ -7,7 +7,7 @@
 
     const db = {
         requests: [
-            { RequestId: "ULP-412", Campaign: "Ramadan Teaser", RequestType: "Campaign", RequestedStartDate: d("2026-09-28"), RequestedEndDate: d("2026-09-30"), SubmittedBy: "Fitri Handayani", Approver: "rizky.adiputra@gdn-commerce.com; sarah.melinda@gdn-commerce.com", Status: "Pending" },
+            { RequestId: "ULP-412", Campaign: "Ramadan Teaser", RequestType: "Campaign", RequestedStartDate: d("2026-09-28"), RequestedEndDate: d("2026-09-30"), SubmittedBy: "Fitri Handayani", Approver: "rizky.adiputra@gdn-commerce.com; sarah.melinda@gdn-commerce.com", ApprovedBy: "sarah.melinda@gdn-commerce.com", Status: "Pending" },
             { RequestId: "ULP-416", Campaign: "Tiket Rewards Spin Wheel", RequestType: "Campaign (Gamification)", RequestedStartDate: d("2026-10-01"), RequestedEndDate: d("2026-10-07"), SubmittedBy: "Yoga Tri", Approver: "sarah.melinda@gdn-commerce.com", Status: "Pending" },
             { RequestId: "ULP-418", Campaign: "BlibliMart Fresh Deals", RequestType: "Slot Comm", RequestedStartDate: d("2026-09-25"), RequestedEndDate: d("2026-09-27"), SubmittedBy: "Yoga Tri", Approver: "rizky.adiputra@gdn-commerce.com", Status: "Pending" },
             { RequestId: "ULP-421", Campaign: "Serba Seru Payday Boost", RequestType: "Slot Comm", RequestedStartDate: d("2026-09-30"), RequestedEndDate: d("2026-09-30"), SubmittedBy: "Anisa Rahma", Approver: "ilham.fauzi@gdn-commerce.com", Status: "Pending" },
@@ -73,7 +73,7 @@
         requestLevelTypes: { raw: q.get("types") || "" },
         ApprovalConfigJson: { raw: "" },
         ItemAvailabilityJson: { raw: availability },
-        requests: dataset(db.requests, ["RequestId", "Campaign", "RequestType", "RequestedStartDate", "RequestedEndDate", "SubmittedBy", "Approver", "Status"]),
+        requests: dataset(db.requests, ["RequestId", "Campaign", "RequestType", "RequestedStartDate", "RequestedEndDate", "SubmittedBy", "Approver", "ApprovedBy", "Status"]),
         items: dataset(db.items, ["ItemId", "RequestId", "ItemName", "ItemType", "Status", "StartDate", "EndDate", "PlacementId"]),
         history: dataset(db.history, ["HistoryId", "RequestId", "ActionLabel", "Actor", "Timestamp", "Comment"]),
         comments: dataset(db.comments, ["CommentId", "RequestId", "Author", "Timestamp", "Text"])

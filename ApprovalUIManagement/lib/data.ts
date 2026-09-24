@@ -153,6 +153,10 @@ const p = (params: Params, name: string): string | undefined => {
 };
 
 export function readRequests(ds: DataSet | undefined, params: Params): DatasetState<ApprovalRequest> {
+    // The approver comes from ApprovedBy. The old default "approver" no longer overrides that;
+    // the Approver column is only read when ApprovedBy is empty.
+    const approverField = p(params, "approverField");
+    const customApprover = approverField && approverField.trim().toLowerCase() !== "approver" ? approverField : undefined;
     return readDataset<ApprovalRequest>(
         ds,
         {
@@ -164,7 +168,8 @@ export function readRequests(ds: DataSet | undefined, params: Params): DatasetSt
                 start: [p(params, "requestedStartDateField"), "requestedStartDate", "startDate"],
                 end: [p(params, "requestedEndDateField"), "requestedEndDate", "endDate"],
                 submittedBy: [p(params, "submittedByField"), "submittedBy", "requester"],
-                approver: [p(params, "approverField"), "approver"],
+                approver: [customApprover, "approvedBy"],
+                approverFallback: ["approver"],
                 status: [p(params, "statusField"), "status", "requestStatus"]
             },
             build: (get, id) => ({
@@ -174,7 +179,7 @@ export function readRequests(ds: DataSet | undefined, params: Params): DatasetSt
                 requestedStartDate: date(get("start")),
                 requestedEndDate: date(get("end")),
                 submittedBy: text(get("submittedBy")),
-                approver: text(get("approver")),
+                approver: text(get("approver")) ?? text(get("approverFallback")),
                 status: text(get("status")) ?? ""
             })
         },

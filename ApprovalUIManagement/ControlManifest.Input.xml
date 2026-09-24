@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="PowerAppsVibe" constructor="ApprovalUIManagement" version="2.0.1" display-name-key="ApprovalUIManagement_Display_Key" description-key="ApprovalUIManagement_Desc_Key" control-type="standard" api-version="1.3.18">
+  <control namespace="PowerAppsVibe" constructor="ApprovalUIManagement" version="2.0.2" display-name-key="ApprovalUIManagement_Display_Key" description-key="ApprovalUIManagement_Desc_Key" control-type="standard" api-version="1.3.18">
     <property name="title" display-name-key="Title_Display_Key" description-key="Title_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="Approval Inbox"/>
     <property name="subtitle" display-name-key="Subtitle_Display_Key" description-key="Subtitle_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="Review and take action on requests that require your approval."/>
     <property name="requestIdField" display-name-key="RequestIdField_Display_Key" description-key="RequestIdField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="requestId"/>
@@ -9,7 +9,7 @@
     <property name="requestedStartDateField" display-name-key="RequestedStartDateField_Display_Key" description-key="RequestedStartDateField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="requestedStartDate"/>
     <property name="requestedEndDateField" display-name-key="RequestedEndDateField_Display_Key" description-key="RequestedEndDateField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="requestedEndDate"/>
     <property name="submittedByField" display-name-key="SubmittedByField_Display_Key" description-key="SubmittedByField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="submittedBy"/>
-    <property name="approverField" display-name-key="ApproverField_Display_Key" description-key="ApproverField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="approver"/>
+    <property name="approverField" display-name-key="ApproverField_Display_Key" description-key="ApproverField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="ApprovedBy"/>
     <property name="statusField" display-name-key="StatusField_Display_Key" description-key="StatusField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="status"/>
     <property name="itemIdField" display-name-key="ItemIdField_Display_Key" description-key="ItemIdField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="itemId"/>
     <property name="itemRequestIdField" display-name-key="ItemRequestIdField_Display_Key" description-key="ItemRequestIdField_Desc_Key" of-type="SingleLine.Text" usage="input" required="false" default-value="requestId"/>

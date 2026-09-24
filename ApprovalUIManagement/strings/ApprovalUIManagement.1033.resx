@@ -43,7 +43,7 @@
   <data name="SubmittedByField_Display_Key"><value>Submitted By Field</value></data>
   <data name="SubmittedByField_Desc_Key"><value>Name of the bound column used as the requester's name.</value></data>
   <data name="ApproverField_Display_Key"><value>Approver Field</value></data>
-  <data name="ApproverField_Desc_Key"><value>Name of the bound column used as the assigned approver's name (optional; the Approver filter is hidden if this isn't mapped).</value></data>
+  <data name="ApproverField_Desc_Key"><value>Name of the bound column used as the approver's name. Default ApprovedBy; the Approver column is used when it is empty. The Approver filter is hidden if neither has values.</value></data>
   <data name="StatusField_Display_Key"><value>Status Field</value></data>
   <data name="StatusField_Desc_Key"><value>Name of the bound column used as the request's current status.</value></data>
 

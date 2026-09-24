@@ -59,6 +59,7 @@ Action keys are exactly the ones the handler switches on: `APPROVE`, `CONFIRM`, 
 | Property | Behaviour in v2 |
 |---|---|
 | `allowRequestActions` | false hides the Whole request bar (bind it per request type, as in 1.6) |
+| `approverField` | now defaults to `ApprovedBy`. The Approver column is read only when ApprovedBy is empty. The old default value `approver` is treated the same as `ApprovedBy`. Add ApprovedBy to the dataset fields |
 | `allowItemActions` | false makes the Items tab read-only: no row buttons, checkboxes or bulk bar |
 | `itemStartDateField`, `itemEndDateField` (default `StartDate`, `EndDate`) | shown on each item row and used to pre-fill the date dialog |
 | `ItemAvailabilityJson` | same input as 1.6: optional `availableFrom` / `availableTo` window (no window = any period), `blockedDates` or `fullDates`, `placementName`, `dailyCapacity`. Unreadable JSON blocks the dialog. v2 also reads an optional `freeDates` list, shown as *Nearest free* chips |
@@ -96,7 +97,7 @@ npm install
 npm run build          # pcf-scripts: lint + typecheck + bundle -> out/controls/{ApprovalUIManagement,MarketingSlotCalendar}
 npm run harness        # http://localhost:8181 - mock datasets + a JS copy of the Power Fx cascade/roll-up
                        # http://localhost:8181/harness/calendar.html - slot calendar harness
-npm run package -- --base path/to/ApprovalUIManagement_1_6_0_0_managed.zip --version 2.0.0.1
+npm run package -- --base path/to/ApprovalUIManagement_1_6_0_0_managed.zip --version 2.0.0.2
 npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --version 2.0.0.1
 ```
 
