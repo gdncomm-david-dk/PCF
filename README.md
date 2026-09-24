@@ -3,7 +3,7 @@
 | Control | Solution | Docs |
 |---|---|---|
 | `PowerAppsVibe.ApprovalUIManagement` — approval inbox (request- and item-level) | `ApprovalUIManagement` 1.6 → 2.0 | this page |
-| `DK.Components.MarketingSlotCalendar` — placement × day slot calendar | `MarketingSlotCalendarSolution` 1.1 → 2.0 | [docs/MarketingSlotCalendar.md](docs/MarketingSlotCalendar.md) |
+| `DK.Components.MarketingSlotCalendar` — placement × day slot calendar | `MarketingSlotCalendarSolution` 1.1 → 2.0 | [docs/MarketingSlotCalendar.md](docs/MarketingSlotCalendar.md), [Power Fx](docs/MarketingSlotCalendar-PowerFx.md) |
 
 Both are upgrades in place: same component names and contracts, so the existing screens keep working.
 
@@ -97,7 +97,7 @@ npm run build          # pcf-scripts: lint + typecheck + bundle -> out/controls/
 npm run harness        # http://localhost:8181 - mock datasets + a JS copy of the Power Fx cascade/roll-up
                        # http://localhost:8181/harness/calendar.html - slot calendar harness
 npm run package -- --base path/to/ApprovalUIManagement_1_6_0_0_managed.zip --version 2.0.0.1
-npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --version 2.0.0.0
+npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --version 2.0.0.1
 ```
 
 `npm run package` takes an existing solution export and replaces only the code component(s) it

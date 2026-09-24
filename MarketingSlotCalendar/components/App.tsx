@@ -39,6 +39,7 @@ const PHONE_VIEWS: { value: ViewKind; label: string }[] = [
 const FALLBACK_STATUSES = ["Confirmed", "Pending", "Draft", "Cancelled"];
 const PHONE = 700;
 const SIDE_PANEL = 1100;
+const CONFIRM_MS = 10000;
 
 export const App: React.FC<Props> = ({ data, config, onEvent }) => {
     const phone = config.width < PHONE;
@@ -61,6 +62,32 @@ export const App: React.FC<Props> = ({ data, config, onEvent }) => {
     const [local, setLocal] = React.useState<Booking[]>(data.bookings);
 
     React.useEffect(() => setLocal(data.bookings), [data.signature]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // If the app refuses a change (Patch failed, slot taken meanwhile) the data never changes, so the
+    // optimistic copy would keep a booking that does not exist. Fall back to the app's data when no
+    // new data has arrived within CONFIRM_MS of the last local change.
+    const latest = React.useRef({ signature: data.signature, bookings: data.bookings });
+    latest.current = { signature: data.signature, bookings: data.bookings };
+    const pendingSince = React.useRef<{ signature: string; timer: number } | null>(null);
+    React.useEffect(() => {
+        if (pendingSince.current && pendingSince.current.signature !== data.signature) {
+            window.clearTimeout(pendingSince.current.timer);
+            pendingSince.current = null;
+        }
+    }, [data.signature]);
+    React.useEffect(() => () => window.clearTimeout(pendingSince.current?.timer), []);
+    const applyLocal = (change: (xs: Booking[]) => Booking[]) => {
+        setLocal(change);
+        if (pendingSince.current) window.clearTimeout(pendingSince.current.timer);
+        const signature = latest.current.signature;
+        const timer = window.setTimeout(() => {
+            if (latest.current.signature !== signature) return;
+            pendingSince.current = null;
+            setLocal(latest.current.bookings);
+            toast({ tone: "info", title: "Change not confirmed", body: "The app did not save the last change, so the calendar shows the saved bookings again." });
+        }, CONFIRM_MS);
+        pendingSince.current = { signature, timer };
+    };
     React.useEffect(() => setAnchor(config.focusDateKey), [config.focusDateKey]);
     React.useEffect(() => setView(config.defaultView), [config.defaultView]);
 
@@ -162,12 +189,12 @@ export const App: React.FC<Props> = ({ data, config, onEvent }) => {
     const save = (b: Booking) => {
         if (dialog?.isEdit) {
             const previous = local.find((x) => x.id === b.id);
-            setLocal((xs) => xs.map((x) => (x.id === b.id ? b : x)));
+            applyLocal((xs) => xs.map((x) => (x.id === b.id ? b : x)));
             onEvent({ action: "BookingUpdated", bookingId: b.id, placementId: b.placementId, dateKey: b.startDate, booking: b, previous });
             toast({ tone: "ok", title: "Booking updated", body: `${b.campaignName} · ${placementsById.get(b.placementId)?.name ?? ""}` });
         } else {
             const created = { ...b, id: `new-${todayKey()}-${Math.random().toString(36).slice(2, 10)}` };
-            setLocal((xs) => [...xs, created]);
+            applyLocal((xs) => [...xs, created]);
             onEvent({ action: "BookingCreated", bookingId: created.id, placementId: created.placementId, dateKey: created.startDate, booking: created });
             toast({ tone: "ok", title: "Booking created", body: `${created.campaignName} on ${placementsById.get(created.placementId)?.name ?? ""}, ${shortDay(created.startDate)}` });
         }
@@ -180,7 +207,7 @@ export const App: React.FC<Props> = ({ data, config, onEvent }) => {
         const b = local.find((x) => x.id === id);
         setConfirmId(null);
         if (!b) return;
-        setLocal((xs) => xs.filter((x) => x.id !== id));
+        applyLocal((xs) => xs.filter((x) => x.id !== id));
         if (selectedBookingId === id) setSelectedBookingId(null);
         onEvent({ action: "BookingDeleted", bookingId: id, placementId: b.placementId, dateKey: b.startDate, booking: b });
         toast({ tone: "ok", title: "Booking deleted", body: `${b.campaignName} released its slot.` });
@@ -214,7 +241,7 @@ export const App: React.FC<Props> = ({ data, config, onEvent }) => {
                 return;
             }
             const moved: Booking = { ...b, placementId, startDate: day, endDate: addDays(day, dayCount(b.startDate, b.endDate) - 1) };
-            setLocal((xs) => xs.map((x) => (x.id === b.id ? moved : x)));
+            applyLocal((xs) => xs.map((x) => (x.id === b.id ? moved : x)));
             onEvent({ action: "BookingUpdated", bookingId: moved.id, placementId, dateKey: day, booking: moved, previous: b });
             setSelected({ placementId, day });
             setSelectedBookingId(b.id);

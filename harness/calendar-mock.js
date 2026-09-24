@@ -109,6 +109,7 @@
         const b = p.booking;
         const row = (x) => ({ Title: x.campaignName, PlacementId: x.placementId, StartDate: fromKey(x.startDate), EndDate: fromKey(x.endDate), StartTime: x.startTime, EndTime: x.endTime, Requester: x.requester, BookingStatus: x.status, Notes: x.notes || "-" });
         const recId = (id) => String(id).replace(/^rec-/, "");
+        if (q.get("reject") === "1") { log("  (simulated OnChange refused the change - list untouched)"); return; }
         if (o.LastAction === "BookingCreated") db.bookings.push(Object.assign({ ID: String(++seq) }, row(b)));
         else if (o.LastAction === "BookingUpdated") db.bookings = db.bookings.map((r) => (r.ID === recId(b.id) ? Object.assign({ ID: r.ID }, row(b)) : r));
         else if (o.LastAction === "BookingDeleted") db.bookings = db.bookings.filter((r) => r.ID !== recId(p.bookingId));

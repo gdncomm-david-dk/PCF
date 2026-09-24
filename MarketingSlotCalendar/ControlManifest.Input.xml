@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="DK.Components" constructor="MarketingSlotCalendar" version="2.0.0" display-name-key="Control_Display" description-key="Control_Desc" control-type="virtual" api-version="1.3.18">
+  <control namespace="DK.Components" constructor="MarketingSlotCalendar" version="2.0.1" display-name-key="Control_Display" description-key="Control_Desc" control-type="virtual" api-version="1.3.18">
     <external-service-usage enabled="false"/>
     <data-set name="placements" display-name-key="Placements_Display" description-key="Placements_Desc">
       <property-set name="PlacementName" display-name-key="PlacementName_Display" description-key="PlacementName_Desc" of-type="SingleLine.Text" usage="bound" required="false"/>
