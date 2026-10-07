@@ -126,13 +126,19 @@ export interface Validation {
     conflicts: Conflict[];
 }
 
-/** Would a booking on these days overflow the placement? `ignoreId` excludes the booking being edited. */
+/**
+ * Would a booking on these days overflow the placement? `ignoreId` is the booking being edited: it
+ * does not count against itself, and days it already holds on this placement are not checked at all,
+ * so shrinking or partly moving a booking on an already full (or overbooked) placement is allowed.
+ */
 export function validate(index: CapacityIndex, placement: Placement | undefined, start: string, end: string, ignoreId?: string): Validation {
     if (!placement) return { ok: false, message: "Pick a placement.", conflicts: [] };
     if (!start || !end) return { ok: false, message: "Pick a start and an end date.", conflicts: [] };
     if (end < start) return { ok: false, message: "The end date must be on or after the start date.", conflicts: [] };
     const conflicts: Conflict[] = [];
+    const held = ignoreId ? index.get(placement.id) : undefined;
     for (const day of dayRange(start, end)) {
+        if (ignoreId && held?.get(day)?.counted.includes(ignoreId)) continue;
         const s = cellStat(index, placement, day, ignoreId);
         if (s.used >= placement.dailyCapacity) conflicts.push({ day, used: s.used, capacity: placement.dailyCapacity });
     }

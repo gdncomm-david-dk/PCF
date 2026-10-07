@@ -115,7 +115,7 @@ What it does:
 
 - **BookingCreated** re-checks capacity against SharePoint (another user may have taken the slot since
   the screen loaded), then creates the row.
-- **BookingUpdated** (edit dialog or drag) does the same re-check, not counting the booking itself,
+- **BookingUpdated** (edit dialog or drag) does the same re-check on the days the booking does not already hold (shrinking a booking is always allowed),
   then updates the row. For a booking that belongs to a request (`TicketID` filled), it also moves the
   matching `[ULP] Approval Item List` row (dates and placement) and the `[ULP] Request Items` placement,
   so the Approval screen shows the new schedule.
@@ -124,7 +124,7 @@ What it does:
   deleted here: reject them from the Approval screen, so the request roll-up stays right.
 - **DateSelected** and **BookingSelected** only remember the selection.
 - After every write it reloads `colCalBookings`. The calendar then shows the saved state. If a write is
-  refused, nothing reloads, and the calendar undoes its own optimistic change after 10 seconds.
+  refused, nothing reloads, and the calendar undoes its own optimistic change after 30 seconds.
 
 ```powerfx
 If(
@@ -164,28 +164,37 @@ If(
                                     ForAll(
                                         Sequence(DateDiff(dStart, dEnd, TimeUnit.Days) + 1, 0),
                                         With(
-                                            { d: DateAdd(dStart, Value, TimeUnit.Days) },
                                             {
-                                                day: d,
-                                                used: CountRows(
-                                                    Filter(
-                                                        '[ULP] Booking Calendar',
-                                                        PlacementId = pid,
-                                                        BookingStatus.Value = "Confirmed",
-                                                        StartDate <= d,
-                                                        EndDate >= d
+                                                d: DateAdd(dStart, Value, TimeUnit.Days)
+                                            },
+                                            With(
+                                                {
+                                                    // a day this booking already holds on this placement is not re-checked,
+                                                    // so shrinking or partly moving a booking on a full placement is allowed
+                                                    held: !IsBlank(row) && row.BookingStatus.Value = "Confirmed" &&
+                                                        row.PlacementId = pid && row.StartDate <= d && row.EndDate >= d
+                                                },
+                                                {
+                                                    day: d,
+                                                    held: held,
+                                                    used: If(
+                                                        held,
+                                                        0,
+                                                        CountRows(
+                                                            Filter(
+                                                                '[ULP] Booking Calendar',
+                                                                PlacementId = pid,
+                                                                BookingStatus.Value = "Confirmed",
+                                                                StartDate <= d,
+                                                                EndDate >= d
+                                                            )
+                                                        )
                                                     )
-                                                ) - If(
-                                                    // the booking being edited does not compete with itself
-                                                    !IsBlank(row) && row.BookingStatus.Value = "Confirmed" &&
-                                                    row.PlacementId = pid && row.StartDate <= d && row.EndDate >= d,
-                                                    1,
-                                                    0
-                                                )
-                                            }
+                                                }
+                                            )
                                         )
                                     ),
-                                    used >= cap
+                                    !held && used >= cap
                                 )
                             ).day
                         )

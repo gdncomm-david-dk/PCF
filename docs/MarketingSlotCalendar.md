@@ -42,7 +42,7 @@ drag) or `BookingDeleted`. `EventCount` goes up on every action. `LastActionPayl
 
 New bookings carry a `new-<yyyy-mm-dd>-<random>` id, as in 1.1. Delete now asks for confirmation first.
 
-Create, edit, delete and drag show at once. If the app sends no new data within **10 s** (for example, the
+Create, edit, delete and drag show at once. If the app sends no new data within **30 s** (for example, the
 `OnChange` refused the change), the calendar goes back to the app's data and shows *Change not confirmed*.
 
 The full CalendarScreen / CalendarScreenUser wiring (OnVisible, property formulas, `OnChange` with a
@@ -81,7 +81,7 @@ The precedence is the same as 1.1:
 ```bash
 npm run build
 node harness/serve.js     # http://localhost:8181/harness/calendar.html
-npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --version 2.0.0.1
+npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --version 2.0.0.2
 ```
 
 The harness binds mock datasets with the SharePoint column names and property-set aliases. It also
@@ -96,4 +96,4 @@ Query flags:
 - `?loading=1`
 - `?error=…`
 - `?kpi=Comfortable`
-- `?reject=1` (the simulated `OnChange` refuses every change, to test the 10 s revert)
+- `?reject=1` (the simulated `OnChange` refuses every change, to test the 30 s revert)

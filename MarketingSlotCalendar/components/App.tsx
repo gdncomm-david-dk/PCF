@@ -39,7 +39,7 @@ const PHONE_VIEWS: { value: ViewKind; label: string }[] = [
 const FALLBACK_STATUSES = ["Confirmed", "Pending", "Draft", "Cancelled"];
 const PHONE = 700;
 const SIDE_PANEL = 1100;
-const CONFIRM_MS = 10000;
+const CONFIRM_MS = 30000;
 
 export const App: React.FC<Props> = ({ data, config, onEvent }) => {
     const phone = config.width < PHONE;
