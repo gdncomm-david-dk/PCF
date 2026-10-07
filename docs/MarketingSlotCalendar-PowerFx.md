@@ -116,10 +116,12 @@ What it does:
 - **BookingCreated** re-checks capacity against SharePoint (another user may have taken the slot since
   the screen loaded), then creates the row.
 - **BookingUpdated** (edit dialog or drag) does the same re-check, not counting the booking itself,
-  then updates the row.
+  then updates the row. For a booking that belongs to a request (`TicketID` filled), it also moves the
+  matching `[ULP] Approval Item List` row (dates and placement) and the `[ULP] Request Items` placement,
+  so the Approval screen shows the new schedule.
 - **BookingDeleted** removes the row.
-- Bookings that belong to a request (`TicketID` filled) are left alone. Change them from the Approval
-  screen, so that the request, its items and the booking stay in step.
+- Bookings that belong to a request (`TicketID` filled) can be moved and edited here. They cannot be
+  deleted here: reject them from the Approval screen, so the request roll-up stays right.
 - **DateSelected** and **BookingSelected** only remember the selection.
 - After every write it reloads `colCalBookings`. The calendar then shows the saved state. If a write is
   refused, nothing reloads, and the calendar undoes its own optimistic change after 10 seconds.
@@ -232,8 +234,6 @@ If(
                         If(
                             IsBlank(row),
                             Notify("That booking is still being saved or no longer exists. Try again in a moment.", NotificationType.Warning),
-                            !IsBlank(row.TicketID),
-                            Notify("This booking belongs to request " & row.TicketID & ". Change it from the Approval screen.", NotificationType.Warning),
                             IsBlank(cap),
                             Notify("Unknown placement " & pid & ".", NotificationType.Error),
                             !IsBlank(fullDay),
@@ -254,6 +254,48 @@ If(
                                         BookingStatus: { Value: stat },
                                         Notes: note
                                     }
+                                );
+                                // booking of a request: keep the approval item and request item in step
+                                If(
+                                    !IsBlank(row.TicketID),
+                                    With(
+                                        {
+                                            // the submit formula pairs booking ULP-119-2 with item ULP-119-ITEM-2;
+                                            // older rows fall back to the request + old placement
+                                            apv: With(
+                                                {
+                                                    byId: LookUp(
+                                                        '[ULP] Approval Item List',
+                                                        ItemId = Substitute(row.ItemID, row.TicketID & "-", row.TicketID & "-ITEM-")
+                                                    )
+                                                },
+                                                If(
+                                                    IsBlank(byId),
+                                                    LookUp(
+                                                        '[ULP] Approval Item List',
+                                                        RequestId = row.TicketID && PlacementId = row.PlacementId
+                                                    ),
+                                                    byId
+                                                )
+                                            ),
+                                            rit: LookUp(
+                                                '[ULP] Request Items',
+                                                RequestId = row.TicketID && PlacementId = row.PlacementId
+                                            )
+                                        },
+                                        If(
+                                            !IsBlank(apv),
+                                            Patch(
+                                                '[ULP] Approval Item List',
+                                                apv,
+                                                { StartDate: dStart, EndDate: dEnd, PlacementId: pid }
+                                            )
+                                        );
+                                        If(
+                                            !IsBlank(rit) && row.PlacementId <> pid,
+                                            Patch('[ULP] Request Items', rit, { PlacementId: pid })
+                                        )
+                                    )
                                 );
                                 Notify("Booking updated: " & nm & ".", NotificationType.Success),
                                 Notify("Could not update the booking: " & FirstError.Message, NotificationType.Error)
@@ -301,8 +343,8 @@ Notes:
 - **Choice values:** `BookingStatus` is a SharePoint Choice column, so it is written as `{ Value: stat }`.
   The status the user picks in the dialog must exist in the choice list, or the Patch fails with a clear
   message.
-- **Request-linked rows** are protected. To allow editing them anyway, remove the two `!IsBlank(row.TicketID)`
-  branches. Remember that the matching `[ULP] Request Items` row then keeps the old dates.
+- **Request-linked rows** can be edited; only delete is blocked. To allow delete too, remove the
+  `!IsBlank(row.TicketID)` branch under `BookingDeleted`. The approval item then stays behind.
 
 ---
 
