@@ -132,12 +132,15 @@ export const BookingDialog: React.FC<Props> = ({ initial, isEdit, placements, in
                         <div className="msc-avail__strip">
                             {days.map((d) => {
                                 const s = cellStat(index, placement, d, isEdit ? draft.id : undefined);
-                                const full = s.left === 0;
+                                // a day this booking already holds stays its own, however full the placement is
+                                const held = isEdit && !!index.get(placement.id)?.get(d)?.counted.includes(draft.id);
+                                const full = !held && s.left === 0;
+                                const cls = held ? " is-held" : full ? " is-full" : s.left === 1 ? " is-almost" : "";
                                 return (
-                                    <span key={d} className={`msc-avail__day${full ? " is-full" : s.left === 1 ? " is-almost" : ""}`} title={`${s.used} of ${s.capacity} taken`}>
+                                    <span key={d} className={`msc-avail__day${cls}`} title={held ? "Already held by this booking" : `${s.used} of ${s.capacity} taken`}>
                                         <span>{weekday(d)}</span>
                                         <strong>{dayNum(d)}</strong>
-                                        <em>{full ? "full" : `${s.left} left`}</em>
+                                        <em>{held ? "held" : full ? "full" : `${s.left} left`}</em>
                                     </span>
                                 );
                             })}

@@ -81,7 +81,7 @@ The precedence is the same as 1.1:
 ```bash
 npm run build
 node harness/serve.js     # http://localhost:8181/harness/calendar.html
-npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --version 2.0.0.2
+npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --version 2.0.0.3
 ```
 
 The harness binds mock datasets with the SharePoint column names and property-set aliases. It also
@@ -97,3 +97,4 @@ Query flags:
 - `?error=…`
 - `?kpi=Comfortable`
 - `?reject=1` (the simulated `OnChange` refuses every change, to test the 30 s revert)
+- `?overbook=1` (Newsletter overbooked for two weeks, to test that shrinking a booking on a full placement is allowed)

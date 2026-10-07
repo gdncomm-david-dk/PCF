@@ -56,6 +56,11 @@
     add("Beli Lokal Highlight", "VOUCHER_3_1", 8, 10, "budi.santoso", "Confirmed");
     add("Mom & Baby Fair", "VOUCHER_1_1", 2, 4, "dewi.lestari", "Confirmed");
     add("BlibliMart Fresh Deals", "VOUCHER_1_1", 4, 6, "yoga.tri", "Confirmed");
+    if (q.get("overbook") === "1") {
+        // Newsletter (1/day) already overbooked on days 0-13: shrinking a booking there must still be allowed
+        add("Overbook Probe", "NEWSLETTER", 0, 13, "keisha.mukti", "Confirmed");
+        add("Overbook Other", "NEWSLETTER", 0, 13, "budi.santoso", "Confirmed");
+    }
 
     function dataset(rows, cols, idCol) {
         const columns = cols.map(([name, alias]) => ({ name, displayName: name, alias: alias || name, dataType: "SingleLine.Text", order: 0, visualSizeFactor: 1 }));

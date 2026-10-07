@@ -1456,6 +1456,10 @@
     background: var(--msc-bad-bg);
     color: var(--msc-bad-fg);
 }
+.msc-root .msc-avail__day.is-held {
+    background: var(--msc-info-bg);
+    color: var(--msc-info-fg);
+}
 .msc-root .msc-avail__more {
     align-self: center;
     color: var(--msc-faint);
