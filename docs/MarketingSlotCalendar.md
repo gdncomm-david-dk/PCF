@@ -84,6 +84,17 @@ node harness/serve.js     # http://localhost:8181/harness/calendar.html
 npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --version 2.0.0.3
 ```
 
+**Separate solution.** If an environment keeps serving an old bundle, build the same control under a
+new name, `DK.Components.ULPSlotCalendar`, in its own solution `ULPSlotCalendar`:
+
+```bash
+node solution/standalone-calendar.js --base dist/MarketingSlotCalendarSolution_2_0_0_3_managed.zip --version 1.0.0.0
+```
+
+It has the same properties, so the formulas carry over. Insert it on the screen as a new control
+(**ULP Slot Calendar**) and move the property formulas and `OnChange` across. Bump `--version` for each
+upgrade of that solution.
+
 The harness binds mock datasets with the SharePoint column names and property-set aliases. It also
 simulates the CalendarScreen `OnChange`: create, update and delete rewrite the list and push it back.
 
