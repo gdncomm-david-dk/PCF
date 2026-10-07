@@ -145,7 +145,13 @@ If(
                 et: Coalesce(Text(p.booking.endTime), "23:59"),
                 req: Coalesce(Text(p.booking.requester), User().Email),
                 stat: Coalesce(Text(p.booking.status), "Confirmed"),
-                note: Coalesce(Text(p.booking.notes), "-")
+                note: Coalesce(Text(p.booking.notes), "-"),
+                // the booking before the change, as the calendar sent it (BookingUpdated only).
+                // Same yyyy-mm-dd text as the new dates, so no time-zone shift from SharePoint.
+                prevPid: Text(p.previous.placementId),
+                prevStat: Text(p.previous.status),
+                prevS: IfError(DateValue(Text(p.previous.startDate)), Blank()),
+                prevE: IfError(DateValue(Text(p.previous.endDate)), Blank())
             },
             With(
                 {
@@ -171,8 +177,8 @@ If(
                                                 {
                                                     // a day this booking already holds on this placement is not re-checked,
                                                     // so shrinking or partly moving a booking on a full placement is allowed
-                                                    held: !IsBlank(row) && row.BookingStatus.Value = "Confirmed" &&
-                                                        row.PlacementId = pid && row.StartDate <= d && row.EndDate >= d
+                                                    held: !IsBlank(prevS) && !IsBlank(prevE) && prevStat = "Confirmed" &&
+                                                        prevPid = pid && prevS <= d && prevE >= d
                                                 },
                                                 {
                                                     day: d,
