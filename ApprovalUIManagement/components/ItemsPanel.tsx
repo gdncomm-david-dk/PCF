@@ -173,6 +173,7 @@ export const ItemsPanel: React.FC<ItemsPanelProps> = (props) => {
                                             {n ? ` · ${plural(n, "day")}` : ""}
                                         </span>
                                     )}
+                                    {item.itemId && item.itemId !== item.itemName && <span className="uam-item__id uam-mono">{item.itemId}</span>}
                                 </div>
                             </div>
                             {!readOnly && (

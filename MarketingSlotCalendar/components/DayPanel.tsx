@@ -1,10 +1,30 @@
 import * as React from "react";
 import { cellStat, nearestFree } from "../lib/capacity";
-import { longDay, period, shortDay } from "../lib/dates";
+import { isSelecting } from "../lib/copy";
+import { dayCount, longDay, period, shortDay } from "../lib/dates";
 import { leftLabel, levelTone, personName, shown, statusTone } from "../lib/present";
-import { Placement } from "../lib/types";
+import { Booking, Placement } from "../lib/types";
 import { ViewModel } from "./model";
-import { Badge, Button, CalendarIcon, CloseIcon, EditIcon, IconButton, LockIcon, Meter, PlusIcon, TrashIcon } from "./ui";
+import { Badge, Button, CalendarIcon, CloseIcon, CopyButton, EditIcon, IconButton, LockIcon, Meter, PlusIcon, SpinnerIcon, TrashIcon } from "./ui";
+
+const allDay = (b: Booking): boolean => !b.startTime || !b.endTime || (b.startTime === "00:00" && b.endTime === "23:59");
+
+/** The selected booking as plain lines, for the Copy details button. */
+function detailText(b: Booking, placement: string): string {
+    const n = dayCount(b.startDate, b.endDate);
+    return [
+        b.campaignName,
+        `Placement: ${placement}`,
+        `Period: ${period(b.startDate, b.endDate)} (${n} day${n === 1 ? "" : "s"})`,
+        allDay(b) ? "" : `Time: ${b.startTime}–${b.endTime}`,
+        b.status ? `Status: ${b.status}` : "",
+        b.requester ? `Requester: ${personName(b.requester)}${b.requester.includes("@") ? ` <${b.requester}>` : ""}` : "",
+        b.notes && b.notes !== "-" ? `Notes: ${b.notes}` : "",
+        b.id && !b.id.startsWith("new-") ? `Booking ID: ${b.id}` : ""
+    ]
+        .filter(Boolean)
+        .join("\n");
+}
 
 interface Props {
     vm: ViewModel;
@@ -41,35 +61,92 @@ export const DayPanel: React.FC<Props> = ({ vm, placement, day, asSheet, onClose
         const b = bookingsById.get(id);
         if (!b) return null;
         const sh = shown(b, config);
+        const open = vm.selectedBookingId === id && !sh.masked;
+        const saving = vm.savingIds.has(id);
         const meta = [period(b.startDate, b.endDate), personName(sh.requester)].filter(Boolean).join(" · ");
+        const select = () => !isSelecting() && vm.onSelectBooking(id);
+        const where = vm.placementsById.get(b.placementId)?.name ?? b.placementId;
+        const n = dayCount(b.startDate, b.endDate);
         return (
-            <li key={id} className={`msc-bitem${vm.selectedBookingId === id ? " is-selected" : ""}`}>
-                <button type="button" className="msc-bitem__main" onClick={() => vm.onSelectBooking(id)}>
-                    <span className="msc-bitem__name">{sh.title}</span>
-                    <span className="msc-bitem__meta">{meta}</span>
-                    {sh.notes && <span className="msc-bitem__notes">{sh.notes}</span>}
-                </button>
-                <span className="msc-bitem__side">
-                    {b.status && !sh.masked && <Badge tone={statusTone(b, rule)}>{b.status}</Badge>}
-                    {sh.masked ? (
-                        <span className="msc-muted-icon" title="Booked by another team">
-                            <LockIcon size={14} />
-                        </span>
-                    ) : (
-                        <span className="msc-row-actions">
-                            {config.allowEdit && (
-                                <IconButton label={`Edit ${sh.title}`} onClick={() => vm.onEdit(id)}>
-                                    <EditIcon size={15} />
-                                </IconButton>
+            <li key={id} className={`msc-bitem${open ? " is-selected is-open" : ""}${saving ? " is-saving" : ""}`}>
+                <div className="msc-bitem__row">
+                    <div
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={sh.masked ? undefined : open}
+                        className="msc-bitem__main"
+                        onClick={select}
+                        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), vm.onSelectBooking(id))}
+                    >
+                        <span className="msc-bitem__name">{sh.title}</span>
+                        <span className="msc-bitem__meta">{meta}</span>
+                        {sh.notes && !open && <span className="msc-bitem__notes">{sh.notes}</span>}
+                    </div>
+                    <span className="msc-bitem__side">
+                        {saving ? (
+                            <Badge tone="info" title="Waiting for the app to confirm this change">
+                                <SpinnerIcon size={11} className="msc-spin" /> Saving
+                            </Badge>
+                        ) : (
+                            b.status && !sh.masked && <Badge tone={statusTone(b, rule)}>{b.status}</Badge>
+                        )}
+                        {sh.masked ? (
+                            <span className="msc-muted-icon" title="Booked by another team">
+                                <LockIcon size={14} />
+                            </span>
+                        ) : (
+                            <span className="msc-row-actions">
+                                {config.allowEdit && (
+                                    <IconButton label={`Edit ${sh.title}`} onClick={() => vm.onEdit(id)}>
+                                        <EditIcon size={15} />
+                                    </IconButton>
+                                )}
+                                {config.allowDelete && (
+                                    <IconButton label={`Delete ${sh.title}`} className="is-danger" onClick={() => vm.onDelete(id)}>
+                                        <TrashIcon size={15} />
+                                    </IconButton>
+                                )}
+                            </span>
+                        )}
+                    </span>
+                </div>
+                {open && (
+                    <div className="msc-bitem__detail">
+                        <dl className="msc-facts">
+                            <dt>Placement</dt>
+                            <dd>{where}</dd>
+                            <dt>Period</dt>
+                            <dd>
+                                {period(b.startDate, b.endDate)} · {n} day{n === 1 ? "" : "s"}
+                                {allDay(b) ? "" : ` · ${b.startTime}–${b.endTime}`}
+                            </dd>
+                            {b.requester && (
+                                <>
+                                    <dt>Requester</dt>
+                                    <dd>
+                                        {personName(b.requester)}
+                                        {b.requester.includes("@") && <span className="msc-facts__sub">{b.requester}</span>}
+                                    </dd>
+                                </>
                             )}
-                            {config.allowDelete && (
-                                <IconButton label={`Delete ${sh.title}`} className="is-danger" onClick={() => vm.onDelete(id)}>
-                                    <TrashIcon size={15} />
-                                </IconButton>
+                            {sh.notes && (
+                                <>
+                                    <dt>Notes</dt>
+                                    <dd className="msc-facts__notes">{sh.notes}</dd>
+                                </>
                             )}
-                        </span>
-                    )}
-                </span>
+                            {!b.id.startsWith("new-") && (
+                                <>
+                                    <dt>ID</dt>
+                                    <dd className="msc-mono">{b.id}</dd>
+                                </>
+                            )}
+                        </dl>
+                        <CopyButton text={detailText(b, where)} label="Copy booking details">
+                            Copy details
+                        </CopyButton>
+                    </div>
+                )}
             </li>
         );
     };

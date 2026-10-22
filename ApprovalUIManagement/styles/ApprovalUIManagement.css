@@ -69,6 +69,68 @@
 .uam-root *::after {
     box-sizing: border-box;
 }
+/* The canvas player makes its controls unselectable; every text in the control can be selected and
+   copied again. Buttons, tabs and checkboxes stay unselectable so a double-click does not highlight them. */
+.uam-root,
+.uam-root * {
+    -webkit-user-select: text;
+    user-select: text;
+}
+.uam-root button,
+.uam-root [role="tab"],
+.uam-root input[type="checkbox"],
+.uam-root label {
+    -webkit-user-select: none;
+    user-select: none;
+}
+.uam-root input:not([type="checkbox"]),
+.uam-root textarea {
+    -webkit-user-select: text;
+    user-select: text;
+}
+.uam-root ::selection {
+    background: #b9deff;
+    color: var(--uam-ink);
+}
+.uam-root .uam-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    height: 26px;
+    min-width: 26px;
+    padding: 0 6px;
+    border: 1px solid transparent;
+    border-radius: var(--uam-r-sm);
+    background: transparent;
+    color: var(--uam-muted);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    justify-content: center;
+    transition: background-color 0.15s var(--uam-ease), color 0.15s var(--uam-ease);
+}
+.uam-root .uam-copy:hover {
+    background: var(--uam-canvas);
+    color: var(--uam-ink);
+}
+.uam-root .uam-copy--text {
+    height: 32px;
+    padding: 0 10px;
+    border-color: var(--uam-line);
+    background: #fff;
+    color: var(--uam-text);
+}
+.uam-root .uam-copy--done {
+    color: var(--uam-ok-fg);
+}
+.uam-root .uam-copy--done.uam-copy--text {
+    border-color: #a7e9b2;
+    background: var(--uam-ok-bg);
+}
+.uam-root .uam-copy--failed {
+    color: var(--uam-bad-fg);
+}
 .uam-root button,
 .uam-root input,
 .uam-root textarea,
@@ -820,9 +882,30 @@
     font-weight: 700;
     font-size: 13px;
     color: var(--uam-ink);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+}
+.uam-root .uam-facts__copy {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+.uam-root .uam-facts__copy > span {
+    min-width: 0;
+}
+.uam-root .uam-facts__copy .uam-copy {
+    margin: -6px 0;
+    opacity: 0.55;
+}
+.uam-root .uam-facts__cell:hover .uam-copy,
+.uam-root .uam-facts__copy .uam-copy:focus-visible,
+.uam-root .uam-facts__copy .uam-copy--done {
+    opacity: 1;
+}
+.uam-root .uam-detail__tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
 }
 .uam-root[data-breakpoint="mobile"] .uam-facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -997,6 +1080,10 @@
     gap: 4px 12px;
     font-size: 12px;
     color: var(--uam-muted);
+}
+.uam-root .uam-item__id {
+    font-size: 11.5px;
+    color: var(--uam-faint);
 }
 .uam-root .uam-item__placement {
     display: inline-flex;

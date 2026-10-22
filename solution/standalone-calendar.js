@@ -4,12 +4,12 @@
  * bundle: a new component name cannot be cached, and it can sit next to the old one.
  *
  *   npm run build
- *   npm run package -- --base MarketingSlotCalendarSolution_managed.zip --version 2.0.0.3
- *   node solution/standalone-calendar.js --base dist/MarketingSlotCalendarSolution_2_0_0_3_managed.zip --version 1.0.0.0
+ *   npm run package -- --base MarketingSlotCalendarSolution_managed.zip --version 2.0.0.4
+ *   node solution/standalone-calendar.js --base dist/MarketingSlotCalendarSolution_2_0_0_4_managed.zip --version 1.0.0.1
  *
  * The control source is MarketingSlotCalendar/ unchanged; only the constructor, display name,
- * solution unique name and version differ. Bump --version (and the control version below) for
- * every upgrade of this solution.
+ * solution unique name and version differ. Bump --version for every upgrade of this solution; the
+ * control version is derived from it.
  */
 const fs = require("fs");
 const os = require("os");
@@ -25,7 +25,10 @@ function arg(name, fallback) {
 const root = path.resolve(__dirname, "..");
 const base = arg("base");
 const version = arg("version", "1.0.0.0");
-const controlVersion = version.split(".").slice(0, 3).join(".");
+// the control version must rise with every solution version or the app keeps the old bundle:
+// 1.0.0.0 -> 1.0.0, 1.0.0.1 -> 1.0.1, 1.0.1.0 -> 1.0.100
+const [va, vb, vc, vd] = version.split(".").map(Number);
+const controlVersion = `${va}.${vb}.${vc * 100 + vd}`;
 const outDir = path.resolve(root, arg("out", "dist"));
 const CTOR = "ULPSlotCalendar";
 const OLD = "dk_DK.Components.MarketingSlotCalendar";

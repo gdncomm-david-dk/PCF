@@ -48,3 +48,4 @@ export const InfoIcon = make(<><circle cx="12" cy="12" r="9" /><path d="M12 16v-
 export const ChevronDownIcon = make(<path d="m6 9 6 6 6-6" />);
 export const SpinnerIcon = make(<path d="M21 12a9 9 0 1 1-6.22-8.56" />);
 export const MapPinIcon = make(<><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></>);
+export const CopyIcon = make(<><rect x="8" y="8" width="14" height="14" rx="2" /><path d="M4 16a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2" /></>);

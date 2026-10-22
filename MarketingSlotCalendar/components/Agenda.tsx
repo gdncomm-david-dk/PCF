@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cellStat } from "../lib/capacity";
+import { isSelecting } from "../lib/copy";
 import { dayNum, shortDay, weekday } from "../lib/dates";
 import { leftLabel, levelTone } from "../lib/present";
 import { ViewModel } from "./model";
@@ -20,7 +21,14 @@ export const Agenda: React.FC<{ vm: ViewModel; day: string; onDay: (d: string) =
             {vm.placements.map((p) => {
                 const s = cellStat(vm.index, p, day);
                 return (
-                    <button key={p.id} type="button" className="msc-agenda__row" onClick={() => vm.onSelectCell(p.id, day)}>
+                    <div
+                        key={p.id}
+                        role="button"
+                        tabIndex={0}
+                        className="msc-agenda__row"
+                        onClick={() => !isSelecting() && vm.onSelectCell(p.id, day)}
+                        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), vm.onSelectCell(p.id, day))}
+                    >
                         <span className="msc-agenda__top">
                             <span className="msc-agenda__name">{p.name}</span>
                             <Badge tone={levelTone[s.level]}>{leftLabel(s.left, s.capacity)}</Badge>
@@ -30,7 +38,7 @@ export const Agenda: React.FC<{ vm: ViewModel; day: string; onDay: (d: string) =
                             {s.tentative.length > 0 ? ` · ${s.tentative.length} pending` : ""}
                         </span>
                         <Meter pct={s.pct} level={s.level} />
-                    </button>
+                    </div>
                 );
             })}
         </div>

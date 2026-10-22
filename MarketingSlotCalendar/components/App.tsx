@@ -1,6 +1,8 @@
 import * as React from "react";
 import { buildIndex, consumes, makeRule, passesInclude, summarize, validate } from "../lib/capacity";
-import { addDays, addMonths, dayCount, dayRange, endOfMonth, rangeTitle, shortDay, startOfMonth, startOfWeek, todayKey } from "../lib/dates";
+import { addDays, addMonths, dayCount, dayRange, endOfMonth, period, rangeTitle, startOfMonth, startOfWeek, todayKey } from "../lib/dates";
+import { guardSelection } from "../lib/copy";
+import { isConfirmed, overlay, PendingChange, unchanged } from "../lib/pending";
 import { isMasked, personName } from "../lib/present";
 import { Booking, CalendarConfig, CalendarEvent, DataState, Placement, ViewKind } from "../lib/types";
 import { Agenda } from "./Agenda";
@@ -58,44 +60,82 @@ export const App: React.FC<Props> = ({ data, config, onEvent }) => {
     const [toasts, setToasts] = React.useState<ToastMsg[]>([]);
     const [dragId, setDragId] = React.useState<string | null>(null);
     const [phoneDay, setPhoneDay] = React.useState<string | null>(null);
-    // optimistic copy: edits show at once and are replaced when the app pushes new data
-    const [local, setLocal] = React.useState<Booking[]>(data.bookings);
+    // a toast with a key replaces the one with the same key (Saving… → Saved / Not saved)
+    const toast = React.useCallback((t: Omit<ToastMsg, "id"> & { ttl?: number }) => {
+        const id = Date.now() + Math.random();
+        const { ttl, ...msg } = t;
+        setToasts((xs) => {
+            const at = msg.key ? xs.findIndex((x) => x.key === msg.key) : -1;
+            if (at !== -1) return xs.map((x, i) => (i === at ? { ...msg, id } : x));
+            return [...xs.slice(-2), { ...msg, id }];
+        });
+        window.setTimeout(() => setToasts((xs) => xs.filter((x) => x.id !== id)), ttl ?? (t.tone === "bad" ? 9000 : 4000));
+    }, []);
 
-    React.useEffect(() => setLocal(data.bookings), [data.signature]); // eslint-disable-line react-hooks/exhaustive-deps
+    const rootRef = React.useRef<HTMLDivElement>(null);
+    // the canvas player blocks text selection and copy; keep its handlers out of the control
+    React.useEffect(() => (rootRef.current ? guardSelection(rootRef.current) : undefined), []);
 
-    // If the app refuses a change (Patch failed, slot taken meanwhile) the data never changes, so the
-    // optimistic copy would keep a booking that does not exist. Fall back to the app's data when no
-    // new data has arrived within CONFIRM_MS of the last local change.
-    const latest = React.useRef({ signature: data.signature, bookings: data.bookings });
-    latest.current = { signature: data.signature, bookings: data.bookings };
-    const pendingSince = React.useRef<{ signature: string; timer: number } | null>(null);
-    React.useEffect(() => {
-        if (pendingSince.current && pendingSince.current.signature !== data.signature) {
-            window.clearTimeout(pendingSince.current.timer);
-            pendingSince.current = null;
+    // Optimistic changes: a create / edit / move / delete shows at once, laid over the app's data,
+    // until the app's data carries it (Saved) or CONFIRM_MS pass without it (Not saved: the app
+    // refused it, e.g. a Patch failed or the slot was taken meanwhile).
+    const [pending, setPending] = React.useState<PendingChange[]>([]);
+    const local = React.useMemo(() => (pending.length === 0 ? data.bookings : overlay(data.bookings, pending)), [data.bookings, pending]);
+    const savingIds = React.useMemo(() => new Set(pending.map((p) => p.id)), [pending]);
+    const pendingRef = React.useRef(pending);
+    pendingRef.current = pending;
+
+    const track = (p: Omit<PendingChange, "at" | "known">) => {
+        const change: PendingChange = { ...p, at: Date.now(), known: p.kind === "create" ? new Set(data.bookings.map((b) => b.id)) : undefined };
+        const name = p.booking.campaignName || "Booking";
+        // the app's data already looks like this (only fields it does not send changed): nothing to wait for
+        if (p.kind === "update" && data.bookings.some((b) => b.id === p.id) && isConfirmed(change, data.bookings)) {
+            toast({ key: `save:${p.id}`, tone: "ok", title: "Changes sent", body: `${name} · sent to the app.` });
+            return;
         }
-    }, [data.signature]);
-    React.useEffect(() => () => window.clearTimeout(pendingSince.current?.timer), []);
-    const applyLocal = (change: (xs: Booking[]) => Booking[]) => {
-        setLocal(change);
-        if (pendingSince.current) window.clearTimeout(pendingSince.current.timer);
-        const signature = latest.current.signature;
-        const timer = window.setTimeout(() => {
-            if (latest.current.signature !== signature) return;
-            pendingSince.current = null;
-            setLocal(latest.current.bookings);
-            toast({ tone: "info", title: "Change not confirmed", body: "The app did not save the last change, so the calendar shows the saved bookings again." });
-        }, CONFIRM_MS);
-        pendingSince.current = { signature, timer };
+        setPending((ps) => [...ps.filter((x) => x.id !== p.id), change]);
+        const title = p.kind === "create" ? "Saving new booking…" : p.kind === "delete" ? "Deleting booking…" : p.label === "moved" ? "Moving booking…" : "Saving changes…";
+        toast({ key: `save:${p.id}`, tone: "info", busy: true, title, body: `${name} · waiting for the app to confirm`, ttl: CONFIRM_MS + 2000 });
     };
+
+    React.useEffect(() => {
+        const ps = pendingRef.current;
+        if (ps.length === 0) return;
+        const done = ps.filter((p) => isConfirmed(p, data.bookings));
+        if (done.length === 0) return;
+        setPending((xs) => xs.filter((x) => !done.includes(x)));
+        done.forEach((p) => {
+            const name = p.booking.campaignName || "The booking";
+            const place = data.placements.find((x) => x.id === p.booking.placementId)?.name ?? p.booking.placementId;
+            const title = p.kind === "create" ? "Booking created" : p.kind === "delete" ? "Booking deleted" : p.label === "moved" ? "Booking moved" : "Changes saved";
+            const body = p.kind === "delete" ? `${name} released its slot.` : `${name} · ${place}, ${period(p.booking.startDate, p.booking.endDate)}`;
+            toast({ key: `save:${p.id}`, tone: "ok", title, body });
+        });
+    }, [data.signature]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    React.useEffect(() => {
+        if (pending.length === 0) return;
+        const oldest = Math.min(...pending.map((p) => p.at));
+        const timer = window.setTimeout(() => {
+            const now = Date.now();
+            const expired = pendingRef.current.filter((p) => now - p.at >= CONFIRM_MS);
+            if (expired.length === 0) return;
+            setPending((xs) => xs.filter((x) => !expired.includes(x)));
+            expired.forEach((p) =>
+                toast({
+                    key: `save:${p.id}`,
+                    tone: "bad",
+                    title: "Not saved",
+                    body: `${p.booking.campaignName || "The change"}: the app did not confirm it within ${CONFIRM_MS / 1000} seconds, so the calendar shows the saved bookings again. Check the app's message for the reason.`
+                })
+            );
+        }, Math.max(0, oldest + CONFIRM_MS - Date.now()));
+        return () => window.clearTimeout(timer);
+    }, [pending]); // eslint-disable-line react-hooks/exhaustive-deps
+
     React.useEffect(() => setAnchor(config.focusDateKey), [config.focusDateKey]);
     React.useEffect(() => setView(config.defaultView), [config.defaultView]);
 
-    const toast = React.useCallback((t: Omit<ToastMsg, "id">) => {
-        const id = Date.now() + Math.random();
-        setToasts((xs) => [...xs.slice(-2), { ...t, id }]);
-        window.setTimeout(() => setToasts((xs) => xs.filter((x) => x.id !== id)), t.tone === "bad" ? 6000 : 4000);
-    }, []);
 
     // ---------- period ----------
     const activeView: ViewKind = phone && view !== "List" ? "Month" : view;
@@ -169,13 +209,17 @@ export const App: React.FC<Props> = ({ data, config, onEvent }) => {
             }),
         [config.currentUser, defaultStatus]
     );
-    const openEdit = React.useCallback(
-        (id: string) => {
-            const b = bookingsById.get(id);
-            if (b && !isMasked(b, config)) setDialog({ isEdit: true, initial: { ...b } });
-        },
-        [bookingsById, config]
-    );
+    // a booking whose last change is still unconfirmed cannot be changed again: the app may not know its id yet
+    const stillSaving = (id: string): boolean => {
+        if (!savingIds.has(id)) return false;
+        toast({ key: `busy:${id}`, tone: "info", title: "Still saving", body: "Wait until the app confirms the last change to this booking, then try again." });
+        return true;
+    };
+    const openEdit = (id: string) => {
+        const b = bookingsById.get(id);
+        if (b && !isMasked(b, config) && !stillSaving(id)) setDialog({ isEdit: true, initial: { ...b } });
+    };
+    const askDelete = (id: string) => !stillSaving(id) && setConfirmId(id);
 
     const hiddenNotice = (b: Booking) => {
         if (passesInclude(b, config.includeStatuses)) return;
@@ -189,14 +233,18 @@ export const App: React.FC<Props> = ({ data, config, onEvent }) => {
     const save = (b: Booking) => {
         if (dialog?.isEdit) {
             const previous = local.find((x) => x.id === b.id);
-            applyLocal((xs) => xs.map((x) => (x.id === b.id ? b : x)));
+            if (previous && unchanged(previous, b)) {
+                setDialog(null);
+                toast({ tone: "info", title: "No changes", body: "Nothing was changed, so nothing was sent." });
+                return;
+            }
+            track({ id: b.id, kind: "update", booking: b });
             onEvent({ action: "BookingUpdated", bookingId: b.id, placementId: b.placementId, dateKey: b.startDate, booking: b, previous });
-            toast({ tone: "ok", title: "Booking updated", body: `${b.campaignName} · ${placementsById.get(b.placementId)?.name ?? ""}` });
         } else {
             const created = { ...b, id: `new-${todayKey()}-${Math.random().toString(36).slice(2, 10)}` };
-            applyLocal((xs) => [...xs, created]);
+            track({ id: created.id, kind: "create", booking: created });
             onEvent({ action: "BookingCreated", bookingId: created.id, placementId: created.placementId, dateKey: created.startDate, booking: created });
-            toast({ tone: "ok", title: "Booking created", body: `${created.campaignName} on ${placementsById.get(created.placementId)?.name ?? ""}, ${shortDay(created.startDate)}` });
+            setSelectedBookingId(created.id);
         }
         hiddenNotice(b);
         setSelected({ placementId: b.placementId, day: b.startDate });
@@ -207,10 +255,9 @@ export const App: React.FC<Props> = ({ data, config, onEvent }) => {
         const b = local.find((x) => x.id === id);
         setConfirmId(null);
         if (!b) return;
-        applyLocal((xs) => xs.filter((x) => x.id !== id));
+        track({ id, kind: "delete", booking: b });
         if (selectedBookingId === id) setSelectedBookingId(null);
         onEvent({ action: "BookingDeleted", bookingId: id, placementId: b.placementId, dateKey: b.startDate, booking: b });
-        toast({ tone: "ok", title: "Booking deleted", body: `${b.campaignName} released its slot.` });
     };
 
     const canMoveBookings = config.allowDragDrop && config.allowEdit;
@@ -234,18 +281,17 @@ export const App: React.FC<Props> = ({ data, config, onEvent }) => {
         drop: (placementId, day) => {
             const b = dragId ? bookingsById.get(dragId) : undefined;
             setDragId(null);
-            if (!b || (b.placementId === placementId && b.startDate === day)) return;
+            if (!b || (b.placementId === placementId && b.startDate === day) || stillSaving(b.id)) return;
             const res = moveCheck(b, placementId, day);
             if (!res.ok) {
                 toast({ tone: "bad", title: "Cannot move booking", body: res.message });
                 return;
             }
             const moved: Booking = { ...b, placementId, startDate: day, endDate: addDays(day, dayCount(b.startDate, b.endDate) - 1) };
-            applyLocal((xs) => xs.map((x) => (x.id === b.id ? moved : x)));
+            track({ id: b.id, kind: "update", booking: moved, label: "moved" });
             onEvent({ action: "BookingUpdated", bookingId: moved.id, placementId, dateKey: day, booking: moved, previous: b });
             setSelected({ placementId, day });
             setSelectedBookingId(b.id);
-            toast({ tone: "ok", title: "Booking moved", body: `${b.campaignName} now runs on ${placementsById.get(placementId)?.name ?? "the placement"} from ${shortDay(day)}.` });
             hiddenNotice(moved);
         }
     };
@@ -262,12 +308,13 @@ export const App: React.FC<Props> = ({ data, config, onEvent }) => {
         today: todayKey(),
         selected,
         selectedBookingId,
+        savingIds,
         canMoveBookings,
         onSelectCell: selectCell,
         onSelectBooking: selectBooking,
         onCreate: openCreate,
         onEdit: openEdit,
-        onDelete: setConfirmId,
+        onDelete: askDelete,
         drag
     };
 
@@ -308,7 +355,7 @@ export const App: React.FC<Props> = ({ data, config, onEvent }) => {
     const showSheet = !sidePanel && !!panelPlacement;
 
     return (
-        <div className={`msc-root${phone ? " is-phone" : ""}${sidePanel ? " is-wide" : ""}`} onKeyDown={(e) => e.key === "Escape" && !dialog && !confirmId && closePanel()}>
+        <div ref={rootRef} className={`msc-root${phone ? " is-phone" : ""}${sidePanel ? " is-wide" : ""}`} onKeyDown={(e) => e.key === "Escape" && !dialog && !confirmId && closePanel()}>
             <header className="msc-header">
                 <div className="msc-header__text">
                     <h1>{config.headerTitle}</h1>

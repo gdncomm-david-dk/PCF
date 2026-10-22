@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cellStat, consumes } from "../lib/capacity";
-import { longDay } from "../lib/dates";
-import { leftLabel, shown } from "../lib/present";
+import { longDay, period } from "../lib/dates";
+import { leftLabel, personName, shown } from "../lib/present";
 import { DayHeader, gridKeys } from "./CapacityGrid";
 import { ViewModel } from "./model";
 import { Meter, PlusIcon } from "./ui";
@@ -77,7 +77,7 @@ export const WeekBoard: React.FC<{ vm: ViewModel }> = ({ vm }) => {
                                                 const b = bookingsById.get(id);
                                                 if (!b) return null;
                                                 const sh = shown(b, config);
-                                                const movable = vm.canMoveBookings && !sh.masked;
+                                                const movable = vm.canMoveBookings && !sh.masked && !vm.savingIds.has(id);
                                                 return (
                                                     <button
                                                         key={id}
@@ -86,9 +86,10 @@ export const WeekBoard: React.FC<{ vm: ViewModel }> = ({ vm }) => {
                                                             "msc-chip",
                                                             sh.masked ? "msc-chip--masked" : consumes(b, rule) ? "msc-chip--counted" : "msc-chip--tentative",
                                                             vm.selectedBookingId === id ? "is-selected" : "",
-                                                            drag.draggingId === id ? "is-dragging" : ""
+                                                            drag.draggingId === id ? "is-dragging" : "",
+                                                            vm.savingIds.has(id) ? "is-saving" : ""
                                                         ].join(" ")}
-                                                        title={`${sh.title}${b.status ? ` · ${b.status}` : ""}`}
+                                                        title={[sh.title, period(b.startDate, b.endDate), sh.masked ? "" : b.status, personName(sh.requester), vm.savingIds.has(id) ? "saving…" : ""].filter(Boolean).join(" · ")}
                                                         draggable={movable}
                                                         onDragStart={(e) => {
                                                             e.dataTransfer.effectAllowed = "move";

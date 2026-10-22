@@ -1,7 +1,8 @@
 import * as React from "react";
 import { Tone } from "../lib/types";
 import { avatarTone, displayName, initials } from "../lib/format";
-import { AlertIcon, InboxIcon, SpinnerIcon } from "./Icons";
+import { copyText } from "../lib/copy";
+import { AlertIcon, CheckIcon, CopyIcon, InboxIcon, SpinnerIcon } from "./Icons";
 
 export const cx = (...parts: (string | false | null | undefined)[]): string => parts.filter(Boolean).join(" ");
 
@@ -95,5 +96,35 @@ export const DecisionBar: React.FC<{ approved: number; changed: number; rejected
             <span className="uam-decision-bar__seg uam-decision-bar__seg--changed" style={{ width: pct(changed) }} />
             <span className="uam-decision-bar__seg uam-decision-bar__seg--rejected" style={{ width: pct(rejected) }} />
         </div>
+    );
+};
+
+/**
+ * Copies `text` and confirms in place (check mark for 2 s). When the browser refuses the clipboard,
+ * the button says so; the text itself stays selectable for Ctrl+C.
+ */
+export const CopyButton: React.FC<{ text: string; label: string; children?: React.ReactNode; className?: string }> = ({ text, label, children, className }) => {
+    const [state, setState] = React.useState<"idle" | "done" | "failed">("idle");
+    React.useEffect(() => {
+        if (state === "idle") return;
+        const t = window.setTimeout(() => setState("idle"), 2000);
+        return () => window.clearTimeout(t);
+    }, [state]);
+    const tip = state === "done" ? "Copied" : state === "failed" ? "Copy was blocked: select the text and press Ctrl+C" : label;
+    return (
+        <button
+            type="button"
+            className={cx("uam-copy", children ? "uam-copy--text" : undefined, state !== "idle" && `uam-copy--${state}`, className)}
+            title={tip}
+            aria-label={tip}
+            onClick={(e) => {
+                e.stopPropagation();
+                const host = e.currentTarget.closest<HTMLElement>(".uam-root");
+                void copyText(text, host).then((ok) => setState(ok ? "done" : "failed"));
+            }}
+        >
+            {state === "done" ? <CheckIcon size={14} /> : state === "failed" ? <AlertIcon size={14} /> : <CopyIcon size={14} />}
+            {children && <span>{state === "done" ? "Copied" : children}</span>}
+        </button>
     );
 };

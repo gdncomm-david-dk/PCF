@@ -1,9 +1,10 @@
 import * as React from "react";
 import { consumes } from "../lib/capacity";
+import { isSelecting } from "../lib/copy";
 import { dayCount, period, weekday } from "../lib/dates";
 import { overlaps, personName, shown, statusTone } from "../lib/present";
 import { ViewModel } from "./model";
-import { Badge, EditIcon, IconButton, LockIcon, TrashIcon } from "./ui";
+import { Badge, EditIcon, IconButton, LockIcon, SpinnerIcon, TrashIcon } from "./ui";
 
 type SortKey = "start" | "campaign" | "placement" | "status";
 
@@ -37,6 +38,13 @@ export const ListView: React.FC<{ vm: ViewModel; compact: boolean }> = ({ vm, co
             </div>
         );
 
+    const select = (id: string) => !isSelecting() && vm.onSelectBooking(id);
+    const saving = (
+        <Badge tone="info" title="Waiting for the app to confirm this change">
+            <SpinnerIcon size={11} className="msc-spin" /> Saving
+        </Badge>
+    );
+
     const actions = (id: string, masked: boolean) =>
         masked ? (
             <span className="msc-muted-icon" title="Booked by another team">
@@ -63,10 +71,17 @@ export const ListView: React.FC<{ vm: ViewModel; compact: boolean }> = ({ vm, co
                 {rows.map((b) => {
                     const s = shown(b, config);
                     return (
-                        <div key={b.id} role="button" tabIndex={0} className={`msc-bcard${vm.selectedBookingId === b.id ? " is-selected" : ""}`} onClick={() => vm.onSelectBooking(b.id)} onKeyDown={(e) => e.key === "Enter" && vm.onSelectBooking(b.id)}>
+                        <div
+                            key={b.id}
+                            role="button"
+                            tabIndex={0}
+                            className={`msc-bcard${vm.selectedBookingId === b.id ? " is-selected" : ""}${vm.savingIds.has(b.id) ? " is-saving" : ""}`}
+                            onClick={() => select(b.id)}
+                            onKeyDown={(e) => e.key === "Enter" && vm.onSelectBooking(b.id)}
+                        >
                             <div className="msc-bcard__top">
                                 <strong>{s.title}</strong>
-                                {b.status && !s.masked && <Badge tone={statusTone(b, rule)}>{b.status}</Badge>}
+                                {vm.savingIds.has(b.id) ? saving : b.status && !s.masked && <Badge tone={statusTone(b, rule)}>{b.status}</Badge>}
                             </div>
                             <span className="msc-bcard__meta">
                                 {placementsById.get(b.placementId)?.name ?? b.placementId} · {period(b.startDate, b.endDate)}
@@ -108,7 +123,7 @@ export const ListView: React.FC<{ vm: ViewModel; compact: boolean }> = ({ vm, co
                             const s = shown(b, config);
                             const n = dayCount(b.startDate, b.endDate);
                             return (
-                                <tr key={b.id} className={vm.selectedBookingId === b.id ? "is-selected" : ""} onClick={() => vm.onSelectBooking(b.id)}>
+                                <tr key={b.id} className={`${vm.selectedBookingId === b.id ? "is-selected" : ""}${vm.savingIds.has(b.id) ? " is-saving" : ""}`} onClick={() => select(b.id)}>
                                     <td>
                                         <span className="msc-table__title">{s.title}</span>
                                         {s.notes && <span className="msc-table__sub">{s.notes}</span>}
@@ -122,10 +137,13 @@ export const ListView: React.FC<{ vm: ViewModel; compact: boolean }> = ({ vm, co
                                         </span>
                                     </td>
                                     <td>
-                                        {b.status && !s.masked ? <Badge tone={statusTone(b, rule)}>{b.status}</Badge> : <span className="msc-faint">—</span>}
+                                        {vm.savingIds.has(b.id) ? saving : b.status && !s.masked ? <Badge tone={statusTone(b, rule)}>{b.status}</Badge> : <span className="msc-faint">—</span>}
                                         {!consumes(b, rule) && !s.masked && <span className="msc-table__sub">slot not taken</span>}
                                     </td>
-                                    <td>{personName(s.requester) || <span className="msc-faint">—</span>}</td>
+                                    <td>
+                                        {personName(s.requester) || <span className="msc-faint">—</span>}
+                                        {s.requester?.includes("@") && <span className="msc-table__sub">{s.requester}</span>}
+                                    </td>
                                     <td className="msc-table__actions">{actions(b.id, s.masked)}</td>
                                 </tr>
                             );

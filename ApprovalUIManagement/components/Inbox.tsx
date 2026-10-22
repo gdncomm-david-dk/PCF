@@ -1,6 +1,7 @@
 import * as React from "react";
 import { ApprovalItem, ApprovalRequest, Breakpoint, ControlConfig } from "../lib/types";
 import { isDecidedRequestStatus, isFinalItemStatus, isRejected, toneFor } from "../lib/actions";
+import { isSelecting } from "../lib/copy";
 import { displayName, isoDay, period } from "../lib/format";
 import { Avatar, Badge, Button, cx, DecisionBar, EmptyState, ErrorState, Skeleton, TypeChip } from "./Primitives";
 import { CloseIcon, FilterIcon, RefreshIcon, SearchIcon } from "./Icons";
@@ -315,7 +316,20 @@ const RequestCard: React.FC<{
     const decided = progress ? progress.approved + progress.changed + progress.rejected : 0;
     return (
         <li>
-            <button type="button" className={cx("uam-card", active && "uam-card--active")} onClick={onOpen} aria-current={active}>
+            {/* a div, not a button: text inside a button cannot be selected and copied */}
+            <div
+                role="button"
+                tabIndex={0}
+                className={cx("uam-card", active && "uam-card--active")}
+                aria-current={active}
+                onClick={() => !isSelecting() && onOpen()}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onOpen();
+                    }
+                }}
+            >
                 <Avatar name={r.submittedBy} />
                 <span className="uam-card__main">
                     <span className="uam-card__row">
@@ -341,7 +355,7 @@ const RequestCard: React.FC<{
                         )}
                     </span>
                 </span>
-            </button>
+            </div>
         </li>
     );
 };

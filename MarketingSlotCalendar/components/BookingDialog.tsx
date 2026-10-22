@@ -49,10 +49,16 @@ export const BookingDialog: React.FC<Props> = ({ initial, isEdit, placements, in
             width={560}
             footer={
                 <>
+                    {touched && blocking && (
+                        <span className="msc-modal__reason" role="status">
+                            <AlertIcon size={14} />
+                            {blocking}
+                        </span>
+                    )}
                     <Button variant="ghost" onClick={onClose}>
                         Cancel
                     </Button>
-                    <Button variant="primary" onClick={save} disabled={touched && !!blocking}>
+                    <Button variant="primary" onClick={save} disabled={touched && !!blocking} title={touched && blocking ? blocking : undefined}>
                         {isEdit ? "Save changes" : "Create booking"}
                     </Button>
                 </>

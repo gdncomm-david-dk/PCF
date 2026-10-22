@@ -34,7 +34,7 @@ export const Timeline: React.FC<{ vm: ViewModel }> = ({ vm }) => {
                             key={p.id}
                             className="msc-lanes"
                             role="row"
-                            style={{ gridColumn: `1 / span ${days.length + 1}`, gridTemplateColumns: cols, gridTemplateRows: `repeat(${count}, var(--msc-lane-h))` }}
+                            style={{ gridColumn: `1 / span ${days.length + 1}`, gridTemplateColumns: cols, gridTemplateRows: `repeat(${count}, minmax(var(--msc-lane-h), auto))` }}
                         >
                             <span className="msc-rowhead" role="rowheader" style={{ gridRow: `1 / span ${count}` }}>
                                 <span className="msc-rowhead__name" title={p.name}>
@@ -77,16 +77,17 @@ export const Timeline: React.FC<{ vm: ViewModel }> = ({ vm }) => {
                                 const from = Math.max(0, days.indexOf(b.startDate < first ? first : b.startDate));
                                 const to = days.indexOf(b.endDate > last ? last : b.endDate);
                                 const counts = consumes(b, rule);
-                                const movable = vm.canMoveBookings && !s.masked;
+                                const movable = vm.canMoveBookings && !s.masked && !vm.savingIds.has(b.id);
                                 const cls = [
                                     "msc-bar",
                                     s.masked ? "msc-bar--masked" : counts ? "msc-bar--counted" : "msc-bar--tentative",
                                     b.startDate < first ? "is-clipped-start" : "",
                                     b.endDate > last ? "is-clipped-end" : "",
                                     vm.selectedBookingId === b.id ? "is-selected" : "",
-                                    drag.draggingId === b.id ? "is-dragging" : ""
+                                    drag.draggingId === b.id ? "is-dragging" : "",
+                                    vm.savingIds.has(b.id) ? "is-saving" : ""
                                 ].join(" ");
-                                const tip = `${s.title} · ${period(b.startDate, b.endDate)}${b.status ? ` · ${b.status}` : ""}${s.requester ? ` · ${personName(s.requester)}` : ""}`;
+                                const tip = `${s.title} · ${period(b.startDate, b.endDate)}${b.status ? ` · ${b.status}` : ""}${s.requester ? ` · ${personName(s.requester)}` : ""}${vm.savingIds.has(b.id) ? " · saving…" : ""}`;
                                 return (
                                     <button
                                         key={b.id}

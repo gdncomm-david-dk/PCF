@@ -13,6 +13,7 @@ import {
 } from "../lib/types";
 import { CASCADE_TYPES, itemActions, matchesType, parseActions, requestActions } from "../lib/actions";
 import { scopeTo } from "../lib/data";
+import { guardSelection } from "../lib/copy";
 import { plural } from "../lib/format";
 import { Inbox } from "./Inbox";
 import { Detail } from "./Detail";
@@ -72,6 +73,8 @@ type DialogState =
 export const App: React.FC<AppProps> = (props) => {
     const { config, requests, isProcessing } = props;
     const [rootRef, breakpoint] = useBreakpoint();
+    // the canvas player blocks text selection and copy; keep its handlers out of the control
+    React.useEffect(() => (rootRef.current ? guardSelection(rootRef.current) : undefined), [rootRef]);
     const [openId, setOpenId] = React.useState("");
     const [dialog, setDialog] = React.useState<DialogState>(null);
     const [toast, setToast] = React.useState<string | null>(null);

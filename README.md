@@ -34,6 +34,7 @@ Fields pane), payload shapes and sequence counters. v2 only adds two optional in
 | History / Comments | plain lists | Activity timeline coloured by action, and Comments as a chat thread |
 | Feedback | dialogs close on confirm | the same, plus: affected rows show *Updating* until the lists report the new status (or 20 s pass), and a toast confirms the send |
 | Layout | — | desktop split view; tablet and mobile show the detail full-width with sticky tabs and decision bar |
+| Copy / select (2.0.3) | — | every text can be selected and copied (Ctrl+C, right-click) although the canvas player blocks selection; selecting text on a card does not open it. *Copy summary* in the detail copies the request and its items as plain text, and Request ID, submitter and approver have their own copy buttons. Item rows show the item ID |
 
 | Bulk select | Approve with changes | Whole request (Campaign) | Mobile |
 |---|---|---|---|
@@ -97,8 +98,8 @@ npm install
 npm run build          # pcf-scripts: lint + typecheck + bundle -> out/controls/{ApprovalUIManagement,MarketingSlotCalendar}
 npm run harness        # http://localhost:8181 - mock datasets + a JS copy of the Power Fx cascade/roll-up
                        # http://localhost:8181/harness/calendar.html - slot calendar harness
-npm run package -- --base path/to/ApprovalUIManagement_1_6_0_0_managed.zip --version 2.0.0.2
-npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --version 2.0.0.3
+npm run package -- --base path/to/ApprovalUIManagement_1_6_0_0_managed.zip --version 2.0.0.3
+npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --version 2.0.0.4
 ```
 
 `npm run package` takes an existing solution export and replaces only the code component(s) it

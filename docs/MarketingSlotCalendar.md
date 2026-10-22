@@ -24,6 +24,8 @@ three optional properties.
 | Booking form | dialog | availability strip for every chosen day, blocking message when a day is full, *All day* toggle, status list built from the data |
 | Header | title + KPI cards | title, *Add booking*, KPI strip (utilisation, free slots, almost full, fully booked, pending) for the visible range, search, view / period / *1 slot/day* switches |
 | Phone | — | day strip + one card per placement with a usage bar. The whole control scrolls |
+| Copy / select (2.0.4) | — | every text can be selected and copied (Ctrl+C, right-click) although the canvas player blocks selection. A selected booking in the day panel shows its details (placement, period, requester email, notes, ID) and *Copy details*. Long placement names wrap to two lines |
+| Saving (2.0.4) | — | a change shows at once with a *Saving…* toast, a dashed bar and a *Saving* badge, and turns into *Booking created / moved / deleted* or *Changes saved* when the app's data carries it. After 30 s without it: *Not saved*, and the calendar shows the saved data again. Saving without changes sends nothing; a booking still saving cannot be edited, moved or deleted again |
 
 | Timeline | Week | Booking dialog | Requestor (masked) | Phone |
 |---|---|---|---|---|
@@ -81,14 +83,14 @@ The precedence is the same as 1.1:
 ```bash
 npm run build
 node harness/serve.js     # http://localhost:8181/harness/calendar.html
-npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --version 2.0.0.3
+npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --version 2.0.0.4
 ```
 
 **Separate solution.** If an environment keeps serving an old bundle, build the same control under a
 new name, `DK.Components.ULPSlotCalendar`, in its own solution `ULPSlotCalendar`:
 
 ```bash
-node solution/standalone-calendar.js --base dist/MarketingSlotCalendarSolution_2_0_0_3_managed.zip --version 1.0.0.0
+node solution/standalone-calendar.js --base dist/MarketingSlotCalendarSolution_2_0_0_4_managed.zip --version 1.0.0.1
 ```
 
 It has the same properties, so the formulas carry over. Insert it on the screen as a new control

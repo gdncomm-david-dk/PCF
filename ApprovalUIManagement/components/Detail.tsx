@@ -2,7 +2,7 @@ import * as React from "react";
 import { ApprovalAction, ApprovalItem, ApprovalRequest, Breakpoint, CommentEntry, DatasetState, HistoryEntry } from "../lib/types";
 import { isApproveLike, isDecidedRequestStatus, isDestructive, isFinalItemStatus, toneFor, toneForActionLabel } from "../lib/actions";
 import { dateTime, days, displayName, period, plural, relative } from "../lib/format";
-import { Avatar, Badge, Button, cx, DecisionBar, EmptyState, ErrorState, Skeleton, TypeChip } from "./Primitives";
+import { Avatar, Badge, Button, CopyButton, cx, DecisionBar, EmptyState, ErrorState, Skeleton, TypeChip } from "./Primitives";
 import { ItemsPanel } from "./ItemsPanel";
 import { BackIcon, CheckIcon, CloseIcon, HistoryIcon, InfoIcon, LayersIcon, MessageIcon, SpinnerIcon, XCircleIcon } from "./Icons";
 
@@ -45,6 +45,8 @@ export const Detail: React.FC<DetailProps> = (p) => {
     }, [items.rows]);
     const decided = stats.total - stats.pending;
     const n = days(r.requestedStartDate, r.requestedEndDate);
+    const approvers = r.approver ? r.approver.split(/[;,]/).map((a) => a.trim()).filter(Boolean) : [];
+    const summary = React.useMemo(() => summaryText(r, items.rows, decided), [r, items.rows, decided]);
 
     const tabs: [DetailTab, string, React.ReactNode, number][] = [
         ["items", "Items", <LayersIcon size={14} key="i" />, items.rows.length],
@@ -63,11 +65,16 @@ export const Detail: React.FC<DetailProps> = (p) => {
                     ) : (
                         <span className="uam-overline">Request detail</span>
                     )}
-                    {breakpoint === "desktop" && (
-                        <button type="button" className="uam-icon-btn" onClick={p.onClose} aria-label="Close detail">
-                            <CloseIcon size={18} />
-                        </button>
-                    )}
+                    <span className="uam-detail__tools">
+                        <CopyButton text={summary} label="Copy the request summary (campaign, period, people, items) to paste elsewhere">
+                            Copy summary
+                        </CopyButton>
+                        {breakpoint === "desktop" && (
+                            <button type="button" className="uam-icon-btn" onClick={p.onClose} aria-label="Close detail">
+                                <CloseIcon size={18} />
+                            </button>
+                        )}
+                    </span>
                 </div>
 
                 <div className="uam-detail__title-row">
@@ -90,7 +97,10 @@ export const Detail: React.FC<DetailProps> = (p) => {
                 <dl className="uam-facts">
                     <div className="uam-facts__cell">
                         <dt>Request ID</dt>
-                        <dd className="uam-mono">{r.requestId}</dd>
+                        <dd className="uam-facts__copy">
+                            <span className="uam-mono">{r.requestId}</span>
+                            <CopyButton text={r.requestId} label="Copy request ID" />
+                        </dd>
                     </div>
                     <div className="uam-facts__cell">
                         <dt>Period</dt>
@@ -101,11 +111,17 @@ export const Detail: React.FC<DetailProps> = (p) => {
                     </div>
                     <div className="uam-facts__cell">
                         <dt>Submitted by</dt>
-                        <dd>{displayName(r.submittedBy) || "—"}</dd>
+                        <dd className="uam-facts__copy">
+                            <span title={r.submittedBy}>{displayName(r.submittedBy) || "—"}</span>
+                            {r.submittedBy && r.submittedBy.indexOf("@") !== -1 && <CopyButton text={r.submittedBy} label={`Copy ${r.submittedBy}`} />}
+                        </dd>
                     </div>
                     <div className="uam-facts__cell">
-                        <dt>Approver</dt>
-                        <dd title={r.approver}>{r.approver ? r.approver.split(/[;,]/).map((a) => displayName(a)).filter(Boolean).join(", ") : "—"}</dd>
+                        <dt>{approvers.length > 1 ? "Approvers" : "Approver"}</dt>
+                        <dd className="uam-facts__copy">
+                            <span title={r.approver}>{approvers.length > 0 ? approvers.map((a) => displayName(a)).join(", ") : "—"}</span>
+                            {approvers.some((a) => a.indexOf("@") !== -1) && <CopyButton text={approvers.join("; ")} label={`Copy ${approvers.length > 1 ? "approver emails" : approvers[0]}`} />}
+                        </dd>
                     </div>
                 </dl>
 
@@ -206,6 +222,36 @@ export const Detail: React.FC<DetailProps> = (p) => {
         </div>
     );
 };
+
+/** Plain-text summary for "Copy summary": readable in chat, email or a ticket. */
+function summaryText(r: ApprovalRequest, items: ApprovalItem[], decided: number): string {
+    const n = days(r.requestedStartDate, r.requestedEndDate);
+    const people = (v?: string): string =>
+        v
+            ? v
+                  .split(/[;,]/)
+                  .map((a) => a.trim())
+                  .filter(Boolean)
+                  .map((a) => (a.indexOf("@") !== -1 ? `${displayName(a)} <${a}>` : a))
+                  .join(", ")
+            : "—";
+    const lines = [
+        `${r.campaign || r.requestId} (${r.requestId})`,
+        `Type: ${r.requestType || "—"}`,
+        `Status: ${r.status || "—"}`,
+        `Period: ${period(r.requestedStartDate, r.requestedEndDate) || "—"}${n ? ` (${plural(n, "day")})` : ""}`,
+        `Submitted by: ${people(r.submittedBy)}`,
+        `Approver: ${people(r.approver)}`
+    ];
+    if (items.length > 0) {
+        lines.push("", `Items (${decided} of ${items.length} decided):`);
+        items.forEach((i) => {
+            const bits = [i.itemName || i.itemId, i.placementId, period(i.startDate, i.endDate), i.status || "Pending"].filter(Boolean);
+            lines.push(`- ${bits.join(" · ")}${i.itemId && i.itemId !== i.itemName ? ` [${i.itemId}]` : ""}`);
+        });
+    }
+    return lines.join("\n");
+}
 
 /** reject and revision on the left, approve last (right-most, primary) */
 const weight = (a: ApprovalAction): number => (isApproveLike(a) ? 2 : isDestructive(a) ? 0 : 1);

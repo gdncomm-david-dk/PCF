@@ -19,6 +19,8 @@ export interface ViewModel {
     today: string;
     selected: Cell | null;
     selectedBookingId: string | null;
+    /** bookings with a change the app has not confirmed yet */
+    savingIds: Set<string>;
     canMoveBookings: boolean;
     onSelectCell: (placementId: string, day: string) => void;
     onSelectBooking: (id: string) => void;

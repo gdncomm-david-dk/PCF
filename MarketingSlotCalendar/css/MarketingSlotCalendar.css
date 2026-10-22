@@ -88,6 +88,75 @@
 .msc-root button {
     cursor: pointer;
 }
+/* The canvas player marks its controls user-select:none; every text in the calendar can be selected and
+   copied again. Buttons, view switches and draggable bars stay unselectable so clicks and drags work. */
+.msc-root,
+.msc-root * {
+    -webkit-user-select: text;
+    user-select: text;
+}
+.msc-root button,
+.msc-root [role="radio"],
+.msc-root [role="tab"],
+.msc-root [draggable="true"],
+.msc-root .msc-check,
+.msc-root .msc-field > span {
+    -webkit-user-select: none;
+    user-select: none;
+}
+.msc-root input,
+.msc-root textarea {
+    -webkit-user-select: text;
+    user-select: text;
+}
+.msc-root ::selection {
+    background: #b9deff;
+    color: var(--msc-ink);
+}
+.msc-root .msc-mono {
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: 0.92em;
+}
+.msc-root .msc-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    height: 26px;
+    min-width: 26px;
+    padding: 0 6px;
+    border: 1px solid transparent;
+    border-radius: var(--msc-r-sm);
+    background: transparent;
+    color: var(--msc-muted);
+    font-size: 12px;
+    font-weight: 700;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.msc-root .msc-copy:hover {
+    background: var(--msc-canvas);
+    color: var(--msc-ink);
+}
+.msc-root .msc-copy--text {
+    height: 30px;
+    padding: 0 10px;
+    border-color: var(--msc-line);
+    background: #fff;
+    color: var(--msc-text);
+}
+.msc-root .msc-copy--done {
+    color: var(--msc-ok-fg);
+}
+.msc-root .msc-copy--done.msc-copy--text {
+    border-color: #a7e9b2;
+    background: var(--msc-ok-bg);
+}
+.msc-root .msc-copy--failed {
+    color: var(--msc-bad-fg);
+}
+.msc-root .msc-spin {
+    animation: msc-spin 0.8s linear infinite;
+}
 .msc-root h1,
 .msc-root h2,
 .msc-root h3,
@@ -581,12 +650,15 @@
     border-right: 1px solid var(--msc-line-soft);
 }
 .msc-root .msc-rowhead__name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     font-size: 12.5px;
     font-weight: 700;
+    line-height: 1.3;
     color: var(--msc-ink);
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
 }
 .msc-root .msc-rowhead__meta {
     margin-top: 1px;
@@ -740,6 +812,11 @@
     border-bottom: 1px solid var(--msc-line-soft);
     position: relative;
 }
+/* a lane grows when the placement name needs two lines; the bars keep their height */
+.msc-root .msc-lanes .msc-bar {
+    align-self: center;
+    height: var(--msc-lane-h);
+}
 .msc-root .msc-lanes .msc-rowhead {
     border-bottom: none;
     margin: -6px 0;
@@ -833,6 +910,12 @@
 .msc-root .msc-bar.is-dragging,
 .msc-root .msc-chip.is-dragging {
     opacity: 0.45;
+}
+.msc-root .msc-bar.is-saving,
+.msc-root .msc-chip.is-saving {
+    border-style: dashed;
+    animation: msc-saving 1.2s ease-in-out infinite;
+    cursor: progress;
 }
 .msc-root .msc-grid.is-dragging .msc-bar,
 .msc-root .msc-grid.is-dragging .msc-chip,
@@ -1051,6 +1134,14 @@
 .msc-root .msc-bcard.is-selected {
     border-color: var(--msc-blue);
 }
+.msc-root .msc-bcard.is-saving,
+.msc-root .msc-bitem.is-saving {
+    border-style: dashed;
+    border-color: #5aa6ff;
+}
+.msc-root .msc-table tbody tr.is-saving td {
+    background: var(--msc-blue-faint);
+}
 .msc-root .msc-bcard__top {
     display: flex;
     align-items: flex-start;
@@ -1163,13 +1254,19 @@
     list-style: none;
 }
 .msc-root .msc-bitem {
-    display: flex;
-    align-items: center;
-    gap: 8px;
     padding: 9px 8px 9px 12px;
     border: 1px solid var(--msc-line);
     border-radius: 12px;
     background: #fff;
+    transition: border-color 0.12s, background 0.12s;
+}
+.msc-root .msc-bitem:hover {
+    border-color: var(--msc-line-strong);
+}
+.msc-root .msc-bitem__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 .msc-root .msc-bitem.is-selected {
     border-color: var(--msc-blue);
@@ -1182,8 +1279,51 @@
     min-width: 0;
     padding: 0;
     border: none;
+    border-radius: 6px;
     background: none;
     text-align: left;
+    cursor: pointer;
+}
+.msc-root .msc-bitem.is-open .msc-bitem__name {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.msc-root .msc-bitem__detail {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #cfe5ff;
+    cursor: auto;
+}
+.msc-root .msc-facts {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 5px 12px;
+    width: 100%;
+    margin: 0;
+    font-size: 12.5px;
+}
+.msc-root .msc-facts dt {
+    color: var(--msc-faint);
+    font-weight: 600;
+}
+.msc-root .msc-facts dd {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin: 0;
+    color: var(--msc-ink);
+    overflow-wrap: anywhere;
+}
+.msc-root .msc-facts__sub {
+    color: var(--msc-muted);
+    font-size: 12px;
+}
+.msc-root .msc-facts__notes {
+    white-space: pre-wrap;
 }
 .msc-root .msc-bitem__name {
     font-size: 13px;
@@ -1341,10 +1481,27 @@
 }
 .msc-root .msc-modal__foot {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
     gap: 8px;
     padding: 12px 20px 16px;
     border-top: 1px solid var(--msc-line-soft);
+}
+.msc-root .msc-modal__reason {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+    margin-right: auto;
+    color: var(--msc-bad-fg);
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.35;
+}
+.msc-root .msc-modal__reason svg {
+    flex: none;
+    margin-top: 1px;
 }
 .msc-root .msc-confirm {
     font-size: 14px;
@@ -1622,6 +1779,7 @@
     border-bottom: 1px solid var(--msc-line-soft);
     background: #fff;
     text-align: left;
+    cursor: pointer;
 }
 .msc-root .msc-agenda__row:last-child {
     border-bottom: none;
@@ -1701,6 +1859,16 @@
     from {
         transform: translateY(40px);
         opacity: 0;
+    }
+}
+@keyframes msc-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+@keyframes msc-saving {
+    50% {
+        opacity: 0.55;
     }
 }
 @keyframes msc-shimmer {

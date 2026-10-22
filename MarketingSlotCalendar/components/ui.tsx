@@ -1,4 +1,5 @@
 import * as React from "react";
+import { copyText } from "../lib/copy";
 
 type IconProps = { size?: number; className?: string };
 
@@ -24,6 +25,8 @@ export const AlertIcon = icon(<><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2
 export const CheckIcon = icon(<path d="M20 6 9 17l-5-5" />);
 export const InfoIcon = icon(<><circle cx="12" cy="12" r="9" /><path d="M12 16v-4M12 8h.01" /></>);
 export const LockIcon = icon(<><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></>);
+export const CopyIcon = icon(<><rect x="8" y="8" width="14" height="14" rx="2" /><path d="M4 16a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2" /></>);
+export const SpinnerIcon = icon(<path d="M21 12a9 9 0 1 1-6.22-8.56" />);
 export const GripIcon = icon(<><circle cx="9" cy="6" r="1" /><circle cx="15" cy="6" r="1" /><circle cx="9" cy="12" r="1" /><circle cx="15" cy="12" r="1" /><circle cx="9" cy="18" r="1" /><circle cx="15" cy="18" r="1" /></>);
 
 export type Tone = "ok" | "warn" | "bad" | "info" | "neutral";
@@ -130,7 +133,11 @@ export const Modal: React.FC<{ title: string; subtitle?: string; onClose: () => 
 
 export interface ToastMsg {
     id: number;
+    /** a toast with the same key replaces this one */
+    key?: string;
     tone: "ok" | "bad" | "info";
+    /** shows a spinner: the action is still waiting for the app */
+    busy?: boolean;
     title: string;
     body?: string;
 }
@@ -139,7 +146,9 @@ export const Toasts: React.FC<{ items: ToastMsg[]; onDismiss: (id: number) => vo
     <div className="msc-toasts" aria-live="polite">
         {items.map((t) => (
             <div key={t.id} className={`msc-toast msc-toast--${t.tone}`} role="status">
-                <span className="msc-toast__icon">{t.tone === "ok" ? <CheckIcon size={16} /> : t.tone === "bad" ? <AlertIcon size={16} /> : <InfoIcon size={16} />}</span>
+                <span className="msc-toast__icon">
+                    {t.busy ? <SpinnerIcon size={16} className="msc-spin" /> : t.tone === "ok" ? <CheckIcon size={16} /> : t.tone === "bad" ? <AlertIcon size={16} /> : <InfoIcon size={16} />}
+                </span>
                 <div className="msc-toast__text">
                     <strong>{t.title}</strong>
                     {t.body && <span>{t.body}</span>}
@@ -157,3 +166,33 @@ export const Meter: React.FC<{ pct: number; level: string }> = ({ pct, level }) 
         <span style={{ width: `${Math.max(0, Math.min(100, pct))}%` }} />
     </span>
 );
+
+/**
+ * Copies `text` and confirms in place (check mark for 2 s). When the browser refuses the clipboard,
+ * the button says so; the text itself stays selectable for Ctrl+C.
+ */
+export const CopyButton: React.FC<{ text: string; label: string; children?: React.ReactNode; className?: string }> = ({ text, label, children, className }) => {
+    const [state, setState] = React.useState<"idle" | "done" | "failed">("idle");
+    React.useEffect(() => {
+        if (state === "idle") return;
+        const t = window.setTimeout(() => setState("idle"), 2000);
+        return () => window.clearTimeout(t);
+    }, [state]);
+    const tip = state === "done" ? "Copied" : state === "failed" ? "Copy was blocked: select the text and press Ctrl+C" : label;
+    return (
+        <button
+            type="button"
+            className={["msc-copy", children ? "msc-copy--text" : "", state !== "idle" ? `msc-copy--${state}` : "", className ?? ""].filter(Boolean).join(" ")}
+            title={tip}
+            aria-label={tip}
+            onClick={(e) => {
+                e.stopPropagation();
+                const host = e.currentTarget.closest<HTMLElement>(".msc-root");
+                void copyText(text, host).then((ok) => setState(ok ? "done" : "failed"));
+            }}
+        >
+            {state === "done" ? <CheckIcon size={14} /> : state === "failed" ? <AlertIcon size={14} /> : <CopyIcon size={14} />}
+            {children && <span>{state === "done" ? "Copied" : children}</span>}
+        </button>
+    );
+};
