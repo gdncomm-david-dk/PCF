@@ -1,11 +1,16 @@
 /*
  * Builds the slot calendar as a separate code component, DK.Components.ULPSlotCalendar, in its own
- * solution "ULPSlotCalendar". Use it when an environment keeps serving an old MarketingSlotCalendar
- * bundle: a new component name cannot be cached, and it can sit next to the old one.
+ * solution (unique name "ULPSlotCalendarDK", publisher DKComponents from the base zip). Use it when an
+ * environment keeps serving an old MarketingSlotCalendar bundle: a new component name cannot be
+ * cached, and it can sit next to the old one.
+ *
+ * The unique name is not "ULPSlotCalendar": an environment can already hold a solution of that name
+ * under another publisher, and Dataverse refuses to change a solution's publisher on import. Pass
+ * --solution to use another name; keep the same one for every upgrade.
  *
  *   npm run build
  *   npm run package -- --base MarketingSlotCalendarSolution_managed.zip --version 2.0.0.4
- *   node solution/standalone-calendar.js --base dist/MarketingSlotCalendarSolution_2_0_0_4_managed.zip --version 1.0.0.1
+ *   node solution/standalone-calendar.js --base dist/MarketingSlotCalendarSolution_2_0_0_4_managed.zip --version 1.0.0.2
  *
  * The control source is MarketingSlotCalendar/ unchanged; only the constructor, display name,
  * solution unique name and version differ. Bump --version for every upgrade of this solution; the
@@ -25,6 +30,7 @@ function arg(name, fallback) {
 const root = path.resolve(__dirname, "..");
 const base = arg("base");
 const version = arg("version", "1.0.0.0");
+const solution = arg("solution", "ULPSlotCalendarDK");
 // the control version must rise with every solution version or the app keeps the old bundle:
 // 1.0.0.0 -> 1.0.0, 1.0.0.1 -> 1.0.1, 1.0.1.0 -> 1.0.100
 const [va, vb, vc, vd] = version.split(".").map(Number);
@@ -41,6 +47,7 @@ const edit = (file, fn) => fs.writeFileSync(file, fn(fs.readFileSync(file, "utf8
 (async () => {
     if (!base) throw new Error("--base <MarketingSlotCalendarSolution zip> is required");
     if (!/^\d+\.\d+\.\d+\.\d+$/.test(version)) throw new Error(`--version must look like 1.0.0.0, got ${version}`);
+    if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(solution)) throw new Error(`--solution must be a solution unique name (letters, digits, _), got ${solution}`);
 
     // 1. a renamed copy of the control project, built with the repo's own toolchain
     const work = fs.mkdtempSync(path.join(os.tmpdir(), "ulp-slot-calendar-"));
@@ -67,8 +74,8 @@ const edit = (file, fn) => fs.writeFileSync(file, fn(fs.readFileSync(file, "utf8
         let text = (await f.async("string")).split(OLD).join(NEW);
         if (name === "solution.xml") {
             text = text
-                .replace(/(<SolutionManifest>[\s\S]*?<UniqueName>)[^<]+(<\/UniqueName>)/, `$1${CTOR}$2`)
-                .replace(/(<SolutionManifest>[\s\S]*?<LocalizedName description=")[^"]+(")/, "$1ULP Slot Calendar$2")
+                .replace(/(<SolutionManifest>[\s\S]*?<UniqueName>)[^<]+(<\/UniqueName>)/, `$1${solution}$2`)
+                .replace(/(<SolutionManifest>[\s\S]*?<LocalizedName description=")[^"]+(")/, "$1ULP Slot Calendar (DK)$2")
                 .replace(/<Version>[^<]+<\/Version>/, `<Version>${version}</Version>`);
         }
         zip.file(name, text);
@@ -80,11 +87,11 @@ const edit = (file, fn) => fs.writeFileSync(file, fn(fs.readFileSync(file, "utf8
     const managed = /<Managed>1<\/Managed>/.test(await zip.file("solution.xml").async("string"));
 
     fs.mkdirSync(outDir, { recursive: true });
-    const name = `${CTOR}_${version.replace(/\./g, "_")}${managed ? "_managed" : ""}.zip`;
+    const name = `${solution}_${version.replace(/\./g, "_")}${managed ? "_managed" : ""}.zip`;
     const buf = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
     fs.writeFileSync(path.join(outDir, name), buf);
     fs.rmSync(work, { recursive: true, force: true });
-    console.log(`${name}  (${managed ? "managed" : "unmanaged"}, control ${NEW} ${controlVersion}, ${(buf.length / 1024).toFixed(0)} KB)`);
+    console.log(`${name}  (${managed ? "managed" : "unmanaged"}, solution ${solution}, control ${NEW} ${controlVersion}, ${(buf.length / 1024).toFixed(0)} KB)`);
 })().catch((e) => {
     console.error(e.message);
     process.exit(1);

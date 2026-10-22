@@ -87,11 +87,16 @@ npm run package -- --base path/to/MarketingSlotCalendarSolution_managed.zip --ve
 ```
 
 **Separate solution.** If an environment keeps serving an old bundle, build the same control under a
-new name, `DK.Components.ULPSlotCalendar`, in its own solution `ULPSlotCalendar`:
+new name, `DK.Components.ULPSlotCalendar`, in its own solution `ULPSlotCalendarDK` (display name
+*ULP Slot Calendar (DK)*, publisher DKComponents):
 
 ```bash
-node solution/standalone-calendar.js --base dist/MarketingSlotCalendarSolution_2_0_0_4_managed.zip --version 1.0.0.1
+node solution/standalone-calendar.js --base dist/MarketingSlotCalendarSolution_2_0_0_4_managed.zip --version 1.0.0.2
 ```
+
+The unique name is not `ULPSlotCalendar` because an environment can already hold a solution of that
+name under another publisher (Blibli), and import refuses to change a solution's publisher. Keep
+`ULPSlotCalendarDK` for every upgrade, and raise `--version`: the control version follows it.
 
 It has the same properties, so the formulas carry over. Insert it on the screen as a new control
 (**ULP Slot Calendar**) and move the property formulas and `OnChange` across. Bump `--version` for each
