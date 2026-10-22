@@ -1,0 +1,320 @@
+Set(isLoading, true);
+Refresh('[ULP] Booking Calendar');
+
+With(
+    { payload: ParseJSON(UniversalRequestForm_1.RequestPayloadJson) },
+
+    // =====================================================
+    // 0. CEK KAPASITAS PER PLACEMENT
+    //    Slot Comm: slot masih ada di semua hari -> Confirmed / Approved.
+    //               ada hari yang penuh         -> Pending Approval / Pending.
+    //    Campaign : ikut flag dari form.
+    // =====================================================
+    Set(varIsSlotComm, !(Text(payload.requestType) in ["Campaign", "Campaign (Gamification)"]));
+
+    ClearCollect(
+        colSubmitPlc,
+        ForAll(
+            Sequence(CountRows(Table(payload.placements))) As RowNumber,
+            With(
+                { placement: Last(FirstN(Table(payload.placements), RowNumber.Value)) },
+                With(
+                    {
+                        pid: Text(placement.Value.placementId),
+                        dS: DateValue(Text(placement.Value.startDate)),
+                        dE: DateValue(Text(placement.Value.endDate))
+                    },
+                    With(
+                        {
+                            plc: LookUp('[ULP] Placement Calendar', PlacementId = pid),
+                            // booking Confirmed di placement ini yang overlap dengan periode
+                            ov: Filter(
+                                '[ULP] Booking Calendar',
+                                PlacementId = pid,
+                                BookingStatus.Value = "Confirmed",
+                                StartDate <= dE,
+                                EndDate >= dS
+                            )
+                        },
+                        With(
+                            {
+                                // true = setiap hari di periode masih ada slot
+                                isFree: !IsBlank(plc.DailyCapacity) && IsEmpty(
+                                    Filter(
+                                        ForAll(
+                                            Sequence(Max(1, DateDiff(dS, dE, TimeUnit.Days) + 1), 0) As k,
+                                            {
+                                                used: CountRows(
+                                                    Filter(
+                                                        ov,
+                                                        StartDate <= DateAdd(dS, k.Value, TimeUnit.Days),
+                                                        EndDate >= DateAdd(dS, k.Value, TimeUnit.Days)
+                                                    )
+                                                )
+                                            }
+                                        ),
+                                        used >= plc.DailyCapacity
+                                    )
+                                )
+                            },
+                            {
+                                rowNo: RowNumber.Value,
+                                placementId: pid,
+                                placementName: plc.Title,
+                                label: Text(placement.Value.label),
+                                startDate: dS,
+                                endDate: dE,
+                                needApproval: If(
+                                    varIsSlotComm,
+                                    !isFree,
+                                    Coalesce(Boolean(placement.Value.approvalRequired), false)
+                                ),
+                                bookingStatus: If(
+                                    varIsSlotComm,
+                                    If(isFree, "Confirmed", "Pending Approval"),
+                                    Coalesce(Text(placement.Value.bookingStatus), "Pending Approval")
+                                )
+                            }
+                        )
+                    )
+                )
+            )
+        )
+    );
+
+    Set(
+        varNeedApproval,
+        If(
+            varIsSlotComm,
+            !IsEmpty(Filter(colSubmitPlc, needApproval)),
+            Coalesce(Boolean(payload.approval.required), false)
+        )
+    );
+
+    Set(
+        varReqStatus,
+        If(
+            varIsSlotComm,
+            If(
+                varNeedApproval,
+                "Waiting Slot Approval",
+                If(Text(payload.requestGroup) = "Category", "Waiting Airing", "Waiting Creative")
+            ),
+            Text(payload.recommendedNextStatus)
+        )
+    );
+
+    Set(
+        varApprovalStatus,
+        If(varIsSlotComm, If(varNeedApproval, "Pending", "Approved"), Text(payload.approval.status))
+    );
+
+    // =====================================================
+    // 1. CREATE REQUEST
+    // =====================================================
+    Set(
+        varSubmittedRequest,
+        Patch(
+            '[ULP] Requests',
+            Defaults('[ULP] Requests'),
+            {
+                RequestType: Text(payload.requestType),
+                RequestGroup: Text(payload.requestGroup),
+                CampaignName: Text(payload.campaignName),
+                LandingLink: Text(payload.landingLink),
+                PeriodStart: DateValue(Text(payload.periodStart)),
+                PeriodEnd: DateValue(Text(payload.periodEnd)),
+                CopyText: Text(payload.copyText),
+                Notes: Text(payload.notes),
+                ApprovalRequired: varNeedApproval,
+                ApprovalStatus: varApprovalStatus,
+                Status: varReqStatus,
+                Requester: User().Email,
+                excelPromoTncLink: Text(payload.excelPromoTncLink),
+                prizeAllocationLink: Text(payload.prizeAllocationLink),
+                assetPackageLink: Text(payload.assetPackageLink),
+                kvLink: Text(payload.kvLink),
+                woLink: Text(payload.woLink),
+                RequestPayloadJson: UniversalRequestForm_1.RequestPayloadJson
+            }
+        )
+    );
+
+    Set(campaignNameReq, Text(payload.requestType) & " - " & Text(payload.campaignName));
+    Set(startCampaignReq, Text(payload.periodStart));
+    Set(EndCampaignReq,   Text(payload.periodEnd));
+
+    // =====================================================
+    // 2. GENERATE ULP REQUEST ID
+    // =====================================================
+    Set(varRequestID, "ULP-" & Text(varSubmittedRequest.ID));
+
+    // =====================================================
+    // 3. UPDATE REQUESTID DI [ULP] Requests
+    // =====================================================
+    Patch('[ULP] Requests', varSubmittedRequest, { RequestID: varRequestID });
+
+    // =====================================================
+    // 4. CREATE BOOKING CALENDAR (status dari hasil cek kapasitas)
+    // =====================================================
+    ForAll(
+        colSubmitPlc As c,
+        Patch(
+            '[ULP] Booking Calendar',
+            Defaults('[ULP] Booking Calendar'),
+            {
+                TicketID: varRequestID,
+                ItemID: varRequestID & "-" & Text(c.rowNo),
+                PlacementId: c.placementId,
+                PlacementName: c.placementName,
+                Title: Text(payload.campaignName),
+                StartDate: c.startDate,
+                EndDate: c.endDate,
+                BookingStatus: { Value: c.bookingStatus },
+                Requester: User().Email,
+                StartTime: "00:00",
+                EndTime: "23:59",
+                Notes: "-"
+            }
+        )
+    );
+
+    // =====================================================
+    // 5. CREATE REQUEST ITEMS
+    // =====================================================
+    ForAll(
+        Sequence(CountRows(Table(payload.items))) As RowNumber,
+        With(
+            { item: Last(FirstN(Table(payload.items), RowNumber.Value)) },
+            Patch(
+                '[ULP] Request Items',
+                Defaults('[ULP] Request Items'),
+                {
+                    RequestId: varRequestID,
+                    ItemID: varRequestID & "-ITEM-" & Text(RowNumber.Value),
+                    ItemType: Text(item.Value.itemType),
+                    Name: Text(item.Value.name),
+                    ReferenceLink: Text(item.Value.referenceLink),
+                    PlacementId: Text(item.Value.placementId),
+                    Required: Boolean(item.Value.required)
+                }
+            )
+        )
+    );
+
+    // =====================================================
+    // 6. RESOLVE APPROVER POOL
+    //    priority = TIER. Ambil tier terendah yang match,
+    //    lalu SEMUA baris di tier itu jadi pool.
+    // =====================================================
+    ClearCollect(
+        colApproverMatch,
+        Filter(
+            '[ULP] Approver Matrix',
+            active = true,
+            (IsBlank(requestType)  || requestType  = Text(payload.requestType)),
+            (IsBlank(requestGroup) || requestGroup = Text(payload.requestGroup))
+        )
+    );
+
+    Set(varTopPriority, Min(colApproverMatch, priority));
+
+    Set(
+        varApproverPool,
+        Coalesce(
+            Concat(Filter(colApproverMatch, priority = varTopPriority), approverEmail, "; "),
+            varDefaultApprover
+        )
+    );
+
+    // =====================================================
+    // 7. CREATE APPROVAL RECORDS
+    //    Slot Comm: SELALU dibuat (untuk history).
+    //      - slot kosong -> item Approved, booking Confirmed
+    //      - slot penuh  -> item Pending,  booking Pending Approval
+    //      - header: Approved kalau semua item approved, selain itu Pending
+    //    Campaign : hanya kalau form bilang butuh approval.
+    // =====================================================
+    If(
+        varIsSlotComm || varNeedApproval,
+
+        // --- 7a. header ---
+        Patch(
+            '[ULP] Approval Request',
+            Defaults('[ULP] Approval Request'),
+            {
+                RequestId: varRequestID,
+                ticketId: varRequestID,
+                Campaign: Text(payload.campaignName),
+                RequestType: Text(payload.requestType),
+                RequestedStartDate: DateValue(Text(payload.periodStart)),
+                RequestedEndDate: DateValue(Text(payload.periodEnd)),
+                SubmittedBy: User().FullName,
+                Approver: varApproverPool,
+                // kolom Approver di approval screen dibaca dari ApprovedBy
+                ApprovedBy: varApproverPool,
+                Status: If(
+                    varIsSlotComm,
+                    If(varNeedApproval, "Pending", "Approved"),
+                    Text(payload.approval.status)
+                )
+                // Opsional, tanda auto-approve (sesuaikan dengan tipe kolomnya):
+                // , ApprovedAt: If(varIsSlotComm && !varNeedApproval, Now())
+                // , ApprovalNote: If(varIsSlotComm && !varNeedApproval, "Auto-approved: slot available")
+            }
+        );
+
+        // --- 7b. detail ---
+        ForAll(
+            // Slot Comm: semua placement; Campaign: hanya yang butuh approval
+            Filter(colSubmitPlc, varIsSlotComm || needApproval) As c,
+            Patch(
+                '[ULP] Approval Item List',
+                Defaults('[ULP] Approval Item List'),
+                {
+                    ItemId: varRequestID & "-ITEM-" & Text(c.rowNo),
+                    RequestId: varRequestID,
+                    ticketId: varRequestID,
+                    ItemName: Coalesce(c.label, c.placementName),
+                    ItemType: "Placement",
+                    Status: If(c.needApproval, "Pending", "Approved"),
+                    StartDate: c.startDate,
+                    EndDate: c.endDate,
+                    PlacementId: c.placementId
+                }
+            )
+        )
+    )
+);
+
+// =====================================================
+// 8. RESET FORM STATE
+// =====================================================
+Set(varMode, 0);
+Set(
+    varInitialPayloadJson,
+    JSON(
+        {
+            requestId: GUID(), requestType: "", requestGroup: "", campaignName: "", landingLink: "",
+            periodStart: "", periodEnd: "", copyText: "", notes: "",
+            excelPromoTncLink: "", prizeAllocationLink: "", assetPackageLink: "", kvLink: "", woLink: "",
+            game: { gameId: "", skin: "", customSkinBrief: "", customSkinReferenceLink: "" },
+            items: [], placements: [],
+            approval: { required: false, status: "" },
+            recommendedNextStatus: "Draft", isValid: false, validationErrors: []
+        },
+        JSONFormat.Compact
+    )
+);
+
+// =====================================================
+// 9. SHOW SUBMIT CONFIRMATION POPUP
+// =====================================================
+Set(isLoading, false);
+Set(varLastRequestID, varRequestID);
+Set(PopUpRequestConfirmation, true);
+
+Notify(
+    "Request " & varRequestID & If(varNeedApproval, " submitted, waiting for approval", " submitted, slot confirmed"),
+    NotificationType.Success
+);

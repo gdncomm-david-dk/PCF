@@ -7,6 +7,9 @@
 
 Both are upgrades in place: same component names and contracts, so the existing screens keep working.
 
+Wiring the canvas app with Claude Code (co-authoring + E2E test): [docs/Canvas-Coauthoring-Prompt.md](docs/Canvas-Coauthoring-Prompt.md).
+Submit handler (Slot Comm capacity check): [docs/SubmitRequest-OnSelect.txt](docs/SubmitRequest-OnSelect.txt).
+
 ---
 
 # ApprovalUIManagement — PCF control v2
